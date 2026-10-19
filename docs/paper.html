@@ -122,7 +122,7 @@ candidate cell at which that passage exists. Bands: 95% intervals.</figcaption><
 the integrator: ablating it raises known-start KL from 0.0001 to 0.92. Block-1 head 3 reads the start token. Nine heads, concentrated in
 blocks 2 and 3, cost 7–80× more when the start is unknown than when it is given. Two of them attend by location: relative to
 past tokens of the same age, B2H1 and B3H1 put 15× and 35× more attention on moments when the walker was within one cell of its current
-position, and their attention falls about six orders of magnitude between distance 0 and 8. They retrieve the history at the current place,
+position, and their attention falls about six orders of magnitude between distance 0 and 8. Their queries and keys both encode displacement linearly (R² 0.91–0.96); B2H0 encodes it equally well without attending by place, so the lookup depends on query–key alignment. They retrieve the history at the current place,
 the input the egocentric sketch needs (Fig. 5b).</p>
 <figure><img src="figs/spatial_attention.png" alt=""><figcaption><b>Figure 5b.</b> Left: attention to past tokens versus the spatial distance
 between the walker's position then and now. Right: preference for nearby over far past moments of equal age, per head.</figcaption></figure>
