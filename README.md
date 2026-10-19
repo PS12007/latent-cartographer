@@ -144,7 +144,6 @@ What the model learned is the maze, not the statistics of the walks. That is exp
 
 The quickest route is the [walkthrough notebook](notebooks/walkthrough.ipynb): about 15 s on a CPU, it reproduces the Bayes match, the belief probe, steering and map extraction.
 
-
 ```bash
 pip install -r requirements.txt           # torch, numpy, matplotlib, pytest
 python -m cartographer.train --out runs/main        # ~8 min on a laptop GPU (runs/main/model.pt is included)
@@ -174,8 +173,8 @@ docs/           the browser demo (GitHub Pages): model.js is a line-for-line JS 
 ## Limitations and next steps
 
 * **One architecture, small worlds.** Results replicate across 4 mazes and a 12×12 maze, but always with a 4-block, d=128 model. Depth, training dynamics and the mechanistic analyses (sections 3–5) were run on the main maze only.
-* **The circuit is not fully reverse-engineered.** The stages (dead reckoning → egocentric map → matching) are established with probes and edits on the residual stream, not traced to individual heads and neurons. The matching step, where a local map meets the stored maze, is the obvious next target.
-* **Uniform random walks are friendly data.** [Vafa et al. 2024](https://arxiv.org/abs/2406.03689) show that transformers trained on real taxi routes predict well *without* forming a coherent map. The interesting question is when the clean structure seen here breaks down: biased policies, partial observability, larger worlds.
+* **The circuit is only partly reverse-engineered.** The stages (dead reckoning → egocentric map → matching) are established with probes and edits on the residual stream, and head ablations name the integrator and the localisation heads. But the matching step itself, where MLPs in blocks 3–4 compare the local sketch with the stored maze, has not been traced to neurons. That is the obvious next target.
+* **Uniform random walks are friendly data.** [Vafa et al. 2024](https://arxiv.org/abs/2406.03689) show that transformers trained on real taxi routes predict well *without* forming a coherent map. Here the map survives biased walking policies (section 6), so the open question is what breaks it: partial observability, noisy moves, worlds too large for the model's capacity, or real trajectories.
 * **Steering uses class means computed with ground-truth labels** to set the edit size. The direction comes from the probe; the scale does not.
 
 ## Related work
