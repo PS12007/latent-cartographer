@@ -182,7 +182,17 @@ maze's walls 85%–89% of the time (old maze 3–4%): a shared position code is 
 <figure><img src="figs/multimaze.png" alt=""><figcaption><b>Figure 9.</b> Left: two last-layer neurons' fields in four mazes. Middle: field
 correlation within vs across mazes. Right: after swapping the maze token, predictions follow the new maze's walls.</figcaption></figure>
 
-<h2>9 · Limitations</h2>
+<h2>9 · An open arena: border cells, not grid cells</h2>
+<p>In a 16×16 arena without internal walls (128-move walks, known start) the model dead-reckons almost perfectly, but no MLP neuron shows
+grid-like periodic tuning: the firing maps with the most concentrated spatial spectra are edge maps. Linear coordinate ramps
+(x/y explains ≥70% of the firing map) dominate block 1 (306 of 512) and vanish by block 3 (2). Border cells (correlation ≥0.7 with being at a
+wall) rise from 13 to 269. RNN grid codes are usually explained as efficient recurrent path integration [5, 6]; a transformer that sums the whole
+history in one attention step evidently does not need them. Border cells, which also occur in rodent entorhinal cortex [10], are the
+layout that matters for legal moves in an open room.</p>
+<figure><img src="figs/arena.png" alt=""><figcaption><b>Figure 10.</b> Open arena: coordinate cells (block 1) give way to border cells (blocks 3–4).
+Right: example firing maps.</figcaption></figure>
+
+<h2>10 · Limitations</h2>
 <p>All models share one architecture and small worlds, and the mechanistic analyses (Sections 5–6) were run on one maze. The matching step,
 where MLPs in blocks 3–4 compare the egocentric sketch with the stored maze, is only partly explained by the causal template effect, and the block-3 computation feeding the place neurons is untraced. Steering uses
 class-mean distances, computed with ground-truth labels, to set the edit size. Uniform random walks are friendly data, and the clean picture
@@ -199,6 +209,7 @@ here may not survive partial observability or real trajectories [4].</p>
 <li>J. Whittington, J. Warren, T. Behrens. Relating transformers to models and neural representations of the hippocampal formation. ICLR 2022.</li>
 <li>W. Merrill, J. Petty, A. Sabharwal. The illusion of state in state-space models. ICML 2024.</li>
 <li>W. J. Ma, J. Beck, P. Latham, A. Pouget. Bayesian inference with probabilistic population codes. Nature Neuroscience 2006.</li>
+<li>T. Solstad, C. Boccara, E. Kropff, M.-B. Moser, E. Moser. Representation of geometric borders in the entorhinal cortex. Science 2008.</li>
 </ol>
 </body>
 </html>

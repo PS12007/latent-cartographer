@@ -702,8 +702,50 @@ def fig_capacity():
     plt.close(fig)
 
 
+def fig_arena():
+    R = load("results/grid_cells.json")
+    Ls = sorted(R["layers"], key=int)
+    fig = plt.figure(figsize=(14, 4.6))
+    gs = fig.add_gridspec(2, 5, width_ratios=[1.6, 0.12, 1, 1, 1])
+    ax = fig.add_subplot(gs[:, 0])
+    x = np.arange(len(Ls))
+    coord = np.array([R["layers"][l]["n_coordinate"] for l in Ls])
+    border = np.array([R["layers"][l]["n_border"] for l in Ls])
+    ax.bar(x - 0.18, coord, width=0.34, color=REF)
+    ax.bar(x + 0.18, border, width=0.34, color=MODEL)
+    ax.text(x[0] - 0.18, coord[0] + 6, "coordinate\n(x/y ramp)", color=REF, ha="center", fontsize=9, va="bottom")
+    ax.text(x[-1] + 0.18, border[-1] + 6, "border", color=MODEL, ha="center", fontsize=9, va="bottom")
+    ax.set_xticks(x, [f"block {int(l) + 1}" for l in Ls])
+    ax.set_ylim(0, max(coord.max(), border.max()) * 1.25)
+    ax.set_ylabel("MLP neurons (of 512)")
+    ax.set_title("Open 16×16 arena: no grid cells; coordinates become borders", fontsize=11)
+
+    def show(axh, rm, title):
+        axh.imshow(np.array(rm), cmap=matplotlib.colors.LinearSegmentedColormap.from_list("ink", [SURF, "#e7b7a6", MODEL, "#5e160a"]))
+        axh.set_title(title, fontsize=9, color=SOFT)
+        axh.set_xticks([]); axh.set_yticks([])
+        for sp in axh.spines.values():
+            sp.set_visible(True); sp.set_color(INK); sp.set_linewidth(1.2)
+    for j, e in enumerate(R["layers"]["0"]["coord_examples"][:3]):
+        show(fig.add_subplot(gs[0, 2 + j]), e["ratemap"], f"block 1 · neuron {e['neuron']} (coordinate)")
+    picked, seen = [], set()
+    for e in R["layers"]["2"]["border_examples"]:           # one example per wall
+        rm = np.array(e["ratemap"])
+        wall = int(np.argmax([rm[0].mean(), rm[:, -1].mean(), rm[-1].mean(), rm[:, 0].mean()]))
+        if wall not in seen:
+            picked.append(e)
+            seen.add(wall)
+        if len(picked) == 3:
+            break
+    for j, e in enumerate(picked):
+        show(fig.add_subplot(gs[1, 2 + j]), e["ratemap"], f"block 3 · neuron {e['neuron']} (border)")
+    fig.tight_layout()
+    fig.savefig(f"{FIG}/arena.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template", "multimaze", "spatial_attention", "capacity"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template", "multimaze", "spatial_attention", "capacity", "arena"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())

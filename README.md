@@ -38,9 +38,10 @@ The model is never told the maze, the coordinates, or that walls exist. To predi
 | Place cells template-match the local sketch (causal) | own cell is the best of 64 templates for 58% of neurons (chance 1.6%) |
 | One network, four mazes | place cells remap (field corr. 0.13 across mazes); swapping the maze token switches the map (85%–89%) |
 | Heads that attend by place | B2H1 / B3H1 attend 15× / 35× more to past moments spent nearby than to equally old ones far away |
+| Open 16×16 arena | no grid cells; 306 coordinate-ramp neurons in block 1 give way to 269 border cells by block 3 |
 | Does a steered belief persist to the next step? | **No** (14% vs 14% unsteered): location is recomputed from the history at every token |
 
-**Contents:** [1. Belief in the residual stream](#1-the-model-is-nearly-bayes-optimal-and-the-belief-is-in-the-residual-stream) · [2. Causal steering & map extraction](#2-the-map-is-causal-and-you-can-read-the-whole-maze-out-of-it) · [3. Mechanism](#3-how-it-localises-an-egocentric-map-matched-against-an-allocentric-one) · [4. Geometry, place cells, template matching](#4-the-shape-of-the-map) · [5. Depth & dynamics](#5-depth-and-training-dynamics) · [6. Robustness & slippery maze](#6-robustness) · [7. Four mazes: remapping](#7-four-mazes-in-one-network-remapping-and-switching-maps) · [Reproduce](#reproduce) · [Limitations](#limitations-and-next-steps)
+**Contents:** [1. Belief in the residual stream](#1-the-model-is-nearly-bayes-optimal-and-the-belief-is-in-the-residual-stream) · [2. Causal steering & map extraction](#2-the-map-is-causal-and-you-can-read-the-whole-maze-out-of-it) · [3. Mechanism](#3-how-it-localises-an-egocentric-map-matched-against-an-allocentric-one) · [4. Geometry, place cells, template matching](#4-the-shape-of-the-map) · [5. Depth & dynamics](#5-depth-and-training-dynamics) · [6. Robustness & slippery maze](#6-robustness) · [7. Four mazes: remapping](#7-four-mazes-in-one-network-remapping-and-switching-maps) · [8. Open arena: border cells](#8-an-open-arena-no-grid-cells-but-border-cells) · [Reproduce](#reproduce) · [Limitations](#limitations-and-next-steps)
 
 ## 1. The model is (nearly) Bayes-optimal, and the belief is in the residual stream
 
@@ -182,6 +183,19 @@ Animals reuse the same hippocampal neurons across environments: on entering a ne
 
 <p align="center"><img src="figures/capacity.png" width="560" alt="Capacity: 1, 4, 16 mazes"></p>
 
+## 8. An open arena: no grid cells, but border cells
+
+Recurrent networks trained on path integration in open arenas famously grow grid-like periodic codes. To look for them, a model was trained on 128-move walks in a 16×16 arena with no internal walls, start always given ([`experiments/grid_cells.py`](experiments/grid_cells.py)). It dead-reckons almost perfectly (KL < 0.0001), but **no neuron has grid-like tuning**. The most "periodic" firing maps, by spectral peakiness, turn out to be edge-hugging maps, not lattices. What appears instead is a clean hand-over between two cell types:
+
+![Open arena](figures/arena.png)
+
+| | block 1 | block 2 | block 3 | block 4 |
+|---|---|---|---|---|
+| linear coordinate cells (x/y ramp explains ≥ 70% of the firing map) | 306 | 112 | 2 | 0 |
+| border cells (firing map correlates ≥ 0.7 with being at a wall) | 13 | 87 | 269 | 245 |
+
+Early layers code position as straight coordinate ramps, which is what summing displacement vectors produces. Later layers recode it as *border cells*: in an open arena a wall is the only thing that changes which moves are legal. Border cells are a real cell type in rodent entorhinal cortex (Solstad et al. 2008). The same coordinates-to-affordances shift appears in the maze (section 4). Grid codes are usually explained as an efficient way to integrate paths *recurrently*; a transformer, which can sum the whole history in one attention step, does not need them.
+
 ## Reproduce
 
 The quickest route is the [walkthrough notebook](notebooks/walkthrough.ipynb): about 15 s on a CPU, it reproduces the Bayes match, the belief probe, steering and map extraction.
@@ -202,6 +216,7 @@ python experiments/template_matching.py    # do place cells template-match the l
 python experiments/multimaze.py            # four mazes in one network: remapping, map switching
 python experiments/multimaze.py --n_mazes 16 --steps 40000 --out runs/multi16 --results results/multimaze16.json
 python experiments/spatial_attention.py    # heads that attend by location
+python -m cartographer.train --out runs/arena16 --H 16 --W 16 --braid 1.0 --T 128 --p_known 1.0 && python experiments/grid_cells.py
 python -m cartographer.train --out runs/slip15 --slip 0.15 --p_known 0.5 && python experiments/slippery.py
 bash   experiments/sweep_mazes.sh          # 3 more mazes (+ README table: python experiments/summarize.py)
 python experiments/dynamics.py             # probes on training snapshots

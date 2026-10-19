@@ -206,7 +206,14 @@
     <img src="figs/multimaze.png" alt="Four mazes in one network">
   </div>
   <div class="find">
-    <div><h3>8 · It replicates</h3>
+    <div><h3>8 · Open arena: border cells, not grid cells</h3>
+      <p>In a 16×16 room with no internal walls, no neuron develops grid-like periodic tuning. Instead, 306 neurons in block 1 are
+        straight x/y coordinate ramps, and by block 3 269 are border cells that fire along one wall, the only thing that changes which
+        moves are legal. Rodent entorhinal cortex has border cells too.</p></div>
+    <img src="figs/arena.png" alt="Open arena: coordinate and border cells">
+  </div>
+  <div class="find">
+    <div><h3>9 · It replicates</h3>
       <p>Retrained from scratch on three more 8×8 mazes: every wall recovered each time, steering works 82–90%, and edits never
         persist. On a 12×12 maze with the same small model, 261 of 264 walls come back. The map also survives walking styles
         never seen in training (98.7% legal-move accuracy when lost).</p></div>
