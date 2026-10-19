@@ -34,6 +34,7 @@ The model is never told the maze, the coordinates, or that walls exist. To predi
 | Maze recovered from the model by steering alone | **112 / 112 interior walls correct** |
 | Writing one remembered passage into the local map | belief shifts toward whichever candidate cell has that passage (+0.22 / −0.18 vs control) |
 | Replicates on 3 more mazes + a 12×12 maze | all walls recovered on every 8×8 maze; 261/264 on 12×12 |
+| Place cells in the last MLP layer | 127 of 512 neurons; while uncertain they track P(cell), not the single most likely cell |
 | Does a steered belief persist to the next step? | **No** (14% vs 14% unsteered): location is recomputed from the history at every token |
 
 ## 1. The model is (nearly) Bayes-optimal, and the belief is in the residual stream
@@ -103,6 +104,12 @@ Average the model's activations over every moment it is sure it is in cell *c*, 
 * **After block 1 the map is literally a map.** Two principal components explain 85% of the variance across cells, and plotting them redraws the maze as a slightly rotated sheet with corners in the right places. Distances between cells match grid distance (rank correlation 0.90).
 * **It is a coordinate map, not a corridor map.** Walking distance adds nothing once grid distance is known (partial correlation 0.01), while grid distance adds plenty once walking distance is known (0.72). That is what dead reckoning predicts: positions are coordinates, not hops along a graph.
 * **By the last block, geometry follows what each cell lets you do.** The grid structure is gone (0.02), and cells cluster by their walls (0.49): dead ends with dead ends, corridors with corridors. That is the format the output layer needs to pick a legal move.
+
+**Place cells that encode probability** ([`experiments/place_cells.py`](experiments/place_cells.py)). Individual MLP neurons become location-selective with depth: 0 of 512 in block 1, 1 in block 2, 18 in block 3, and **127 of 512 in block 4**. Each fires for one compact patch of the maze, and its cell explains far more of its activity than that cell's wall pattern does, much like hippocampal place cells.
+
+![Place cells](figures/place_cells.png)
+
+The interesting part is what they do when the model is unsure. On moments with several candidate cells, a place neuron's activity follows the *posterior probability* of its cell (mean r = 0.45) better than whether its cell is the single most likely one (r = 0.33) or whether the walker is really there (r = 0.24). That holds for 98% of them. The network does not commit to a best guess and then encode it; it keeps a graded, probability-weighted code over places. This is the "probabilistic population code" proposed for Bayesian inference in the brain.
 
 ## 5. Depth and training dynamics
 

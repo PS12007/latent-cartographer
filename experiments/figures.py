@@ -427,8 +427,43 @@ def fig_map_big():
     plt.close(fig)
 
 
+def fig_place():
+    R = load("results/place_cells.json")
+    maze = Maze.from_dict(R["maze"])
+    L = R["layers"][str(len(R["layers"]) - 1)]
+    # six strong place neurons whose fields are spread over the maze (greedy farthest-point choice)
+    pool = L["examples"]
+    rc = lambda e: np.array(divmod(e["pref"], maze.W))  # noqa: E731
+    ex = [pool[0]]
+    while len(ex) < 6 and len(ex) < len(pool):
+        ex.append(max((e for e in pool if e not in ex), key=lambda e: min(np.abs(rc(e) - rc(x)).sum() for x in ex)))
+    fig = plt.figure(figsize=(14, 4.6))
+    gs = fig.add_gridspec(2, 5, width_ratios=[1, 1, 1, 0.08, 2.0])
+    for i, e in enumerate(ex):
+        ax = fig.add_subplot(gs[i // 3, i % 3])
+        rm = np.array(e["ratemap"])
+        rm = (rm - rm.min()) / max(rm.max() - rm.min(), 1e-9)
+        draw_maze(ax, maze, rm, MODEL, lw=1.0)
+        ax.set_title(f"neuron {e['neuron']}", fontsize=9, loc="center", color=SOFT)
+    ax = fig.add_subplot(gs[:, 4])
+    bv = L["belief_vs_truth"]
+    rb, rm_, rt = np.array(bv["r_belief"]), np.array(bv["r_map"]), np.array(bv["r_truth"])
+    ax.plot([0, 1], [0, 1], color=CTRL, lw=1, ls=":")
+    ax.scatter(rm_, rb, s=22, c=MODEL, edgecolors=SURF, linewidths=0.8, zorder=3)
+    ax.set_xlim(0, 0.9); ax.set_ylim(0, 0.9)
+    ax.set_xlabel("correlation with “this is the single most likely cell”")
+    ax.set_ylabel("correlation with P(this cell)")
+    ax.set_title(f"While uncertain, {bv['frac_belief_better_than_map']:.0%} of place neurons track probability", fontsize=11)
+    ax.text(0.62, 0.55, "equal", color=SOFT, fontsize=9, rotation=40)
+    fig.suptitle(f"Place cells: {L['n_place']} of {L['n_neurons']} block-4 MLP neurons fire for one location (left: six of them, "
+                 "average activation per cell)", x=0.01, ha="left", fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    fig.savefig(f"{FIG}/place_cells.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())

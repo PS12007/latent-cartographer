@@ -176,13 +176,20 @@
     <img src="figs/geometry.png" alt="Geometry of the internal map">
   </div>
   <div class="find">
-    <div><h3>5 · Heads divide the labour</h3>
+    <div><h3>5 · It grows place cells that encode probability</h3>
+      <p>127 of 512 neurons in the last MLP fire for a single location, like hippocampal place cells. While the model is
+        unsure, their activity follows the <em>probability</em> of their cell, not whether it is the most likely one
+        (98% of neurons): a graded, Bayesian code over places.</p></div>
+    <img src="figs/place_cells.png" alt="Place cells">
+  </div>
+  <div class="find">
+    <div><h3>6 · Heads divide the labour</h3>
       <p>One head (B1H1, uniform attention) is the move integrator; removing it ruins even known-start prediction. Nine heads,
         concentrated in blocks 2–3, matter almost only when the start is unknown. Try knocking them out in Fig. d.</p></div>
     <img class="narrow" src="figs/heads.png" alt="Head ablations">
   </div>
   <div class="find">
-    <div><h3>6 · It replicates</h3>
+    <div><h3>7 · It replicates</h3>
       <p>Retrained from scratch on three more 8×8 mazes: every wall recovered each time, steering works 82–90%, and edits never
         persist. On a 12×12 maze with the same small model, 261 of 264 walls come back. The map also survives walking styles
         never seen in training (98.7% legal-move accuracy when lost).</p></div>
