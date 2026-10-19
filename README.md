@@ -93,7 +93,17 @@ A passage that exists only around B pushes the belief toward B (+0.29 at α=8). 
 
 The emerging picture is a tiny, learned form of the SLAM that robots use: integrate your moves → build a local map of what you have walked, *relative to yourself* → match it against a map stored *in the weights* → read off where you are.
 
-## 4. Depth and training dynamics
+## 4. The shape of the map
+
+Average the model's activations over every moment it is sure it is in cell *c*, giving 64 points, one per cell. Then compare distances between those points with distances in the maze ([`experiments/geometry.py`](experiments/geometry.py)):
+
+![Geometry of the internal map](figures/geometry.png)
+
+* **After block 1 the map is literally a map.** Two principal components explain 85% of the variance across cells, and plotting them redraws the maze as a slightly rotated sheet with corners in the right places. Distances between cells match grid distance (rank correlation 0.90).
+* **It is a coordinate map, not a corridor map.** Walking distance adds nothing once grid distance is known (partial correlation 0.01), while grid distance adds plenty once walking distance is known (0.72). That is what dead reckoning predicts: positions are coordinates, not hops along a graph.
+* **By the last block, geometry follows what each cell lets you do.** The grid structure is gone (0.02), and cells cluster by their walls (0.49): dead ends with dead ends, corridors with corridors. That is the format the output layer needs to pick a legal move.
+
+## 5. Depth and training dynamics
 
 ![Depth sweep](figures/depth.png)
 

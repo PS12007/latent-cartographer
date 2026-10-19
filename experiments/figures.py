@@ -345,8 +345,60 @@ def fig_heads():
     plt.close(fig)
 
 
+# ------------------------------------------------------------------ Fig 9: geometry of the internal map
+def fig_geometry():
+    G = load("results/geometry.json")
+    maze = Maze.from_dict(G["maze"])
+    keys = list(G["layers"].keys())
+    fig = plt.figure(figsize=(14, 4.6))
+    gs = fig.add_gridspec(1, 3, width_ratios=[1, 1, 1.15])
+    nxt = maze.nxt()
+    deg = maze.open.sum(1)
+    shades = {1: "#f0b9a8", 2: "#e07a5f", 3: "#c2381f", 4: "#6e1c0e"}   # one hue, light -> dark
+    for j, (k, title) in enumerate([("resid_1", "after block 1: a flat sheet shaped like the grid"),
+                                    ("resid_4", "after block 4: regrouped by which walls a cell has")]):
+        ax = fig.add_subplot(gs[0, j])
+        P = np.array(G["layers"][k]["pca2"])
+        if j == 0:
+            for c in range(maze.N):
+                for m in (1, 2):
+                    if maze.open[c, m]:
+                        n = nxt[c, m]
+                        ax.plot([P[c, 0], P[n, 0]], [P[c, 1], P[n, 1]], color=INK, lw=1.1, alpha=0.55)
+            ax.scatter(P[:, 0], P[:, 1], s=30, c=MODEL, edgecolors=SURF, linewidths=1, zorder=3)
+            for cc, lab in ((0, "(0,0)"), (maze.W - 1, f"(0,{maze.W - 1})"), (maze.N - maze.W, f"({maze.H - 1},0)"),
+                            (maze.N - 1, f"({maze.H - 1},{maze.W - 1})")):
+                ax.annotate(lab, P[cc], textcoords="offset points", xytext=(5, 4), fontsize=8.5, color=SOFT)
+        else:
+            for d in (1, 2, 3, 4):
+                m_ = deg == d
+                if m_.any():
+                    ax.scatter(P[m_, 0], P[m_, 1], s=42, c=shades[d], edgecolors=SURF, linewidths=1, zorder=3,
+                               label=f"{d} open side{'s' if d > 1 else ''}")
+            ax.legend(loc="best", fontsize=8.5, handletextpad=0.3)
+        ax.set_title(title, fontsize=11)
+        ax.set_xticks([]); ax.set_yticks([]); ax.grid(False)
+        ax.set_xlabel(f"PC1–2 ({G['layers'][k]['pca_var2']:.0%} of variance)", fontsize=9, color=SOFT)
+    ax = fig.add_subplot(gs[0, 2])
+    x = np.arange(len(keys))
+    for name, field, col in (("grid distance", "grid", REF), ("walking distance", "path", STEER), ("same walls", "walls", MODEL)):
+        ys = [G["layers"][k][field] for k in keys]
+        ax.plot(x, ys, color=col, marker="o", ms=6)
+        ax.text(x[-1] + 0.12, ys[-1], name, color=col if col != STEER else SOFT, va="center", fontsize=9.5)
+    ax.axhline(0, color=SOFT, lw=0.8)
+    ax.set_xticks(x, ["embed"] + [f"after\nblock {i}" for i in range(1, len(keys))], fontsize=9)
+    ax.set_xlim(-0.3, len(keys) + 1.2)
+    ax.set_ylabel("rank corr. with distance between cell means")
+    ax.set_title("What the geometry tracks", fontsize=11)
+    fig.suptitle("The internal map: each dot is one cell’s average activation (left: lines are open passages).",
+                 x=0.01, ha="left", fontsize=12.5)
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    fig.savefig(f"{FIG}/geometry.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())
