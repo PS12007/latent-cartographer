@@ -54,6 +54,7 @@ export class GPT {
     for (const [k, v] of Object.entries(json.weights)) this.w[k] = decode(v);
     this.probes = {};
     for (const [k, v] of Object.entries(json.probes)) this.probes[k] = { W: decode(v.W), b: decode(v.b), means: decode(v.means) };
+    this.headMeans = json.head_means ? Object.values(json.head_means).map(decode) : null;
     if (json.ego) this.ego = { R: json.ego.R, layer: json.ego.layer,
       visited: { W: decode(json.ego.visited.W), b: decode(json.ego.visited.b) },
       passages: { W: decode(json.ego.passages.W), b: decode(json.ego.passages.b) } };
@@ -61,7 +62,8 @@ export class GPT {
 
   // tokens: int[]; edit: optional {layer, delta: Float32Array} added at the last position
   // entering block `layer` (layer == n_layer edits the final stream).
-  forward(tokens, edit = null) {
+  // ablate: optional Set of "layer,head" strings; those heads output their dataset mean instead.
+  forward(tokens, edit = null, ablate = null) {
     const { d_model: D, n_head: H, n_layer: L } = this.cfg, w = this.w, S = tokens.length, dh = D / H;
     let x = tokens.map((t, p) => {
       const v = new Float32Array(D);
@@ -97,6 +99,10 @@ export class GPT {
           for (let j = 0; j <= i; j++) for (let k = 0; k < dh; k++) y[i][h * dh + k] += a[j] * qkv[j][2 * D + h * dh + k];
         }
         heads.push(pat);
+        if (ablate && ablate.has(`${l},${h}`)) {
+          const mu = this.headMeans[l].data, Smax = this.headMeans[l].shape[1];
+          for (let i = 0; i < S; i++) for (let k = 0; k < dh; k++) y[i][h * dh + k] = mu[(h * Smax + i) * dh + k];
+        }
       }
       attn.push(heads);
       x = x.map((xi, i) => {

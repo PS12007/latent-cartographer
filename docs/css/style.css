@@ -147,6 +147,9 @@ figcaption strong { color: var(--ink); font-weight: 500; }
 .headpick { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
 .headpick button { font-size: 11px; padding: 3px 6px; }
 .headpick button.sel { background: var(--verm); color: var(--paper); border-color: var(--verm); }
+.headpick button.off { text-decoration: line-through; background: var(--paper-3); color: var(--ink-soft); }
+.headpick button.off.sel { background: var(--ink-soft); color: var(--paper); }
+.ko { display: flex; gap: 6px; margin-top: 12px; }
 .attn { display: flex; flex-wrap: wrap; gap: 2px; font-family: var(--mono); font-size: 12px; }
 .attn span { padding: 2px 4px; min-width: 18px; text-align: center; border-bottom: 2px solid var(--paper-3); }
 

@@ -23,7 +23,7 @@ const L = model.cfg.n_layer, MAXT = model.cfg.block_size - 1;
   f.insertAdjacentHTML("beforeend", ` · JS ⇄ PyTorch parity: max |Δlogit| = ${err.toExponential(1)}`);
 }
 
-const S = { start: null, cells: [], tokens: [], beliefs: [], layer: 3, alpha: 2, head: 0, steer: null, out: null, timer: null };
+const S = { start: null, cells: [], tokens: [], beliefs: [], layer: 3, alpha: 2, head: 0, steer: null, out: null, timer: null, ablated: new Set() };
 
 function rand(n) { return Math.floor(Math.random() * n); }
 
@@ -116,7 +116,7 @@ function drawTruth() {
 function probeDist(layer, vec) { return softmax(model.probeLogits(layer, vec)); }
 
 function update() {
-  const out = model.forward(S.tokens);
+  const out = model.forward(S.tokens, null, S.ablated);
   S.out = out;
   const last = S.tokens.length - 1;
   const bayes = S.beliefs.at(-1);
@@ -163,7 +163,7 @@ function update() {
   let ps = null;
   if (S.steer !== null) {
     const delta = model.steerDelta(S.layer, out.resid[S.layer][last], S.steer, S.alpha);
-    ps = softmax(model.forward(S.tokens, { layer: S.layer, delta }).logits[last]);
+    ps = softmax(model.forward(S.tokens, { layer: S.layer, delta }, S.ablated).logits[last]);
   }
   const here = S.cells.at(-1);
   $("#bars").innerHTML = MOVES.map((m, d) => `
@@ -258,13 +258,19 @@ function drawAttention() {
   if (!hp.children.length) {
     for (let l = 0; l < L; l++) for (let h = 0; h < model.cfg.n_head; h++) {
       const b = document.createElement("button");
-      b.textContent = `L${l + 1}H${h}`; b.dataset.k = l * 100 + h;
+      b.textContent = `B${l + 1}H${h}`; b.dataset.k = l * 100 + h;
       b.onclick = () => { S.attnLayer = l; S.head = h; drawAttention(); };
       hp.appendChild(b);
     }
     S.attnLayer = 0;
   }
-  [...hp.children].forEach((b) => b.classList.toggle("sel", +b.dataset.k === S.attnLayer * 100 + S.head));
+  [...hp.children].forEach((b) => {
+    b.classList.toggle("sel", +b.dataset.k === S.attnLayer * 100 + S.head);
+    b.classList.toggle("off", S.ablated.has(`${Math.floor(+b.dataset.k / 100)},${+b.dataset.k % 100}`));
+  });
+  const key = `${S.attnLayer},${S.head}`;
+  $("#koBtn").textContent = S.ablated.has(key) ? `Restore B${S.attnLayer + 1}H${S.head}` : `Knock out B${S.attnLayer + 1}H${S.head}`;
+  $("#koReset").disabled = S.ablated.size === 0;
   const row = S.out.attn[S.attnLayer][S.head].at(-1);
   $("#attn").innerHTML = S.tokens.map((t, i) => {
     const a = row[i], s = i === 0 ? (t === UNK ? "?" : "@") : MOVES[t];
@@ -363,6 +369,12 @@ drawMaze($("#extModel"), null, null, { open: world.open.map((row, c) => row.map(
   return r >= 0 && q >= 0 && r < world.H && q < world.W;           // only the outer boundary until extracted
 })) });
 $("#extractBtn").onclick = extract;
+$("#koBtn").onclick = () => {
+  const key = `${S.attnLayer},${S.head}`;
+  if (S.ablated.has(key)) S.ablated.delete(key); else S.ablated.add(key);
+  update();
+};
+$("#koReset").onclick = () => { S.ablated.clear(); update(); };
 if (location.hash === "#extract") setTimeout(extract, 300);
 
 newWalk(null);

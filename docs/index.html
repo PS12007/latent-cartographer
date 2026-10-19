@@ -82,10 +82,13 @@
     <div class="legend"><span class="sw model"></span>model <span class="sw opt"></span>Bayes-optimal <span class="sw steer"></span>after steering</div>
     <div id="verdict" class="verdict"></div>
 
-    <div class="sheet-head small"><span class="fig">Fig. d</span><h2>Attention</h2></div>
+    <div class="sheet-head small"><span class="fig">Fig. d</span><h2>Heads</h2></div>
     <div class="headpick" id="headpick"></div>
     <div class="attn" id="attn"></div>
-    <p class="note">Attention from the newest token to every earlier token, for one head.</p>
+    <p class="note">Attention from the newest token to every earlier token, for the selected head.</p>
+    <div class="ko"><button id="koBtn">Knock out</button><button id="koReset">restore all</button></div>
+    <p class="note">Knocking out a head replaces its output with its average. Try <b>B1H1</b>, which integrates the moves
+      (the model stops knowing where it is), or the block-3 heads, which only matter when the start is unknown.</p>
   </section>
   <section class="sheet ego">
     <div class="sheet-head"><span class="fig">Fig. e</span><h2>Its local sketch</h2></div>

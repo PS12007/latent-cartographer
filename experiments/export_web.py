@@ -71,6 +71,19 @@ def main():
         ego[name] = {"W": b64(pr.lin.weight), "b": b64(pr.lin.bias)}
     print("ego probes", flush=True)
 
+    # per-position mean output of every head, for mean-ablation in the demo
+    head_means = {}
+    with torch.no_grad():
+        sums = None
+        toks = torch.tensor(train["tokens"], device=args.device)
+        for i in range(0, len(toks), 500):
+            c = {}
+            model(toks[i:i + 500], cache=c)
+            v = [c[f"L{l}.head_out"].sum(0) for l in range(nL)]
+            sums = v if sums is None else [a + b for a, b in zip(sums, v)]
+        for l in range(nL):
+            head_means[l] = b64(sums[l] / len(toks))          # (H, S, dh)
+
     # reference check for the JS implementation
     ref_tokens = train["tokens"][0, :20].tolist()
     cache = {}
@@ -83,9 +96,20 @@ def main():
                                        + torch.tensor(np.frombuffer(base64.b64decode(probes[k]["b"]["b64"]), dtype="<f4").copy()),
                                        -1).tolist() for k in keys}}
 
+    # reference for head knock-out: block 1 head 1 replaced by its mean
+    mu0 = sums[0] / len(toks)
+    def ko(y):
+        y = y.clone()
+        y[:, 1] = mu0[1, : y.shape[2]]
+        return y
+    model.blocks[0].attn.head_hook = ko
+    with torch.no_grad():
+        ref["ablate_0_1_logits"] = model(torch.tensor([ref_tokens], device=args.device))[0].cpu().tolist()
+    model.blocks[0].attn.head_hook = None
+
     out = {"config": ck["config"], "maze": maze.to_dict(),
            "weights": {k: b64(v) for k, v in sd.items()},
-           "probes": probes, "ego": ego, "reference": ref}
+           "probes": probes, "ego": ego, "head_means": head_means, "reference": ref}
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(out, f)

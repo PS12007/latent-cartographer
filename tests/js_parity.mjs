@@ -14,7 +14,13 @@ for (const [k, ref] of Object.entries(J.reference.probe_last)) {
   softmax(model.probeLogits(l, out.resid[l].at(-1))).forEach((v, i) => (perr = Math.max(perr, Math.abs(v - ref[i]))));
 }
 console.log(`max |logit diff| ${err.toExponential(2)}, max |probe prob diff| ${perr.toExponential(2)}`);
-if (err > 1e-3 || perr > 1e-3) { console.error("PARITY FAIL"); process.exit(1); }
+let kerr = 0;
+if (J.reference.ablate_0_1_logits) {
+  const ko = model.forward(J.reference.tokens, null, new Set(["0,1"]));
+  ko.logits.forEach((r, i) => r.forEach((v, j) => (kerr = Math.max(kerr, Math.abs(v - J.reference.ablate_0_1_logits[i][j])))));
+  console.log(`knock-out B1H1: max |logit diff| ${kerr.toExponential(2)}`);
+}
+if (err > 1e-3 || perr > 1e-3 || kerr > 1e-3) { console.error("PARITY FAIL"); process.exit(1); }
 
 // steering sanity: 40-move walks, steer at resid_3 with alpha 2 to a random cell with different walls
 let ok = 0, n = 0, seed = 1;
