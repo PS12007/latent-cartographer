@@ -40,6 +40,8 @@ The model is never told the maze, the coordinates, or that walls exist. To predi
 | Heads that attend by place | B2H1 / B3H1 attend 15× / 35× more to past moments spent nearby than to equally old ones far away |
 | Does a steered belief persist to the next step? | **No** (14% vs 14% unsteered): location is recomputed from the history at every token |
 
+**Contents:** [1. Belief in the residual stream](#1-the-model-is-nearly-bayes-optimal-and-the-belief-is-in-the-residual-stream) · [2. Causal steering & map extraction](#2-the-map-is-causal-and-you-can-read-the-whole-maze-out-of-it) · [3. Mechanism](#3-how-it-localises-an-egocentric-map-matched-against-an-allocentric-one) · [4. Geometry, place cells, template matching](#4-the-shape-of-the-map) · [5. Depth & dynamics](#5-depth-and-training-dynamics) · [6. Robustness & slippery maze](#6-robustness) · [7. Four mazes: remapping](#7-four-mazes-in-one-network-remapping-and-switching-maps) · [Reproduce](#reproduce) · [Limitations](#limitations-and-next-steps)
+
 ## 1. The model is (nearly) Bayes-optimal, and the belief is in the residual stream
 
 Linear probes fitted at every point of the residual stream ([`experiments/probes.py`](experiments/probes.py)) show the computation unfolding with depth:
