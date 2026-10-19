@@ -87,6 +87,23 @@ def main():
         if best is None or v < best[1]:
             best = (k, v, logq)
     k, v, logq = best
+    # nonlinear readout at the same layer: is the blur the probe's or the model's?
+    Xtr = A_tr[k].reshape(-1, A_tr[k].shape[-1]).to(args.device)
+    Ptr = P_tr.to(args.device)
+    mlp = torch.nn.Sequential(torch.nn.Linear(Xtr.shape[1], 512), torch.nn.GELU(), torch.nn.Linear(512, 512),
+                              torch.nn.GELU(), torch.nn.Linear(512, maze.N)).to(args.device)
+    opt = torch.optim.AdamW(mlp.parameters(), lr=1e-3)
+    g = torch.Generator().manual_seed(0)
+    for step in range(6000):
+        i = torch.randint(len(Xtr), (4096,), generator=g)
+        loss = -(Ptr[i] * F.log_softmax(mlp(Xtr[i]), -1)).sum(-1).mean()
+        opt.zero_grad(); loss.backward(); opt.step()
+    with torch.no_grad():
+        logq_mlp = F.log_softmax(mlp(A_te[k].reshape(-1, A_te[k].shape[-1]).to(args.device)), -1).cpu()
+    H_mlp = belief_entropy(logq_mlp.exp().double()).reshape(-1, S)
+    res["mlp_probe_kl"] = kl(P_te, logq_mlp)
+    res["entropy_excess_mlp"] = float((H_mlp - belief_entropy(P_te.double()).reshape(-1, S)).mean())
+    print(f"MLP readout at {k}: KL {res['mlp_probe_kl']:.3f}, entropy excess {res['entropy_excess_mlp']:+.3f}", flush=True)
     H_true = belief_entropy(P_te.double()).reshape(-1, S)
     H_probe = belief_entropy(logq.exp().double()).reshape(-1, S)
     res["best_layer"] = k

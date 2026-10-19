@@ -151,7 +151,7 @@ What the model learned is the maze, not the statistics of the walks. That is exp
 
 ![Slippery maze](figures/slippery.png)
 
-A linear probe after block 4 reaches KL 0.42 to the exact posterior, against 2.63 for the best time-only guess and 7.5 for slip-unaware dead reckoning. Its uncertainty rises and falls with the true posterior's (per-step entropy correlation 0.75). The decoded belief is consistently **more diffuse** than the truth (+0.42 nats on average). Because the model's own predictions are near-optimal, this is probably the linear probe's limit in representing sharp multi-modal beliefs rather than the model's, but a nonlinear readout would be needed to settle it.
+A linear probe after block 4 reaches KL 0.42 to the exact posterior, against 2.63 for the best time-only guess and 7.5 for slip-unaware dead reckoning. Its uncertainty rises and falls with the true posterior's (per-step entropy correlation 0.75). The linearly decoded belief is consistently **more diffuse** than the truth (+0.42 nats on average). Part of that comes from the probe: a two-layer MLP readout at the same layer reaches KL 0.32 and cuts the excess to +0.16 nats. The rest is a small but real gap between the model's internal belief and the exact one, consistent with its 0.014-nat gap in predictions.
 
 ## Reproduce
 
