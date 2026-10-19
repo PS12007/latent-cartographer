@@ -630,8 +630,48 @@ def fig_multimaze():
     plt.close(fig)
 
 
+def fig_spatial_attention():
+    R = load("results/spatial_attention.json")
+    fig, (a, b) = plt.subplots(1, 2, figsize=(12.5, 4.3), gridspec_kw={"width_ratios": [1, 1.3]})
+    for name, col, ls in (("L0H1", CTRL, "--"), ("L1H1", MODEL, "-"), ("L2H1", REF, "-")):
+        prof = np.array(R[name]["by_space"])
+        prof = prof / np.nanmean(prof)
+        x = np.arange(len(prof))
+        a.plot(x, prof, color=col, ls=ls, marker="o", ms=5)
+        lab = f"B{int(name[1]) + 1}H{name[3]}"
+        if name == "L0H1":
+            a.text(x[-1] + 0.2, prof[-1], lab + " (integrator)", color=SOFT, va="center", fontsize=9.5)
+        else:
+            a.text(x[2] + 0.25, prof[2] * (2.2 if name == "L1H1" else 0.35), lab, color=col, va="center", fontsize=10)
+    a.set_yscale("log")
+    a.set_xticks(np.arange(9), [str(i) for i in range(8)] + ["8+"])
+    a.set_xlim(-0.3, 10.6)
+    a.set_xlabel("distance between where I am now and where I was then (cells)")
+    a.set_ylabel("attention (relative to head's mean)")
+    a.set_title("Attention to a past moment vs. how far away it was", fontsize=11)
+    names = [f"L{l}H{h}" for l in range(4) for h in range(4)]
+    lifts = [R[n]["near_far_lift"] for n in names]
+    x = np.arange(16)
+    cols = [MODEL if v > 5 else (REF if v > 1.5 else CTRL) for v in lifts]
+    b.bar(x, lifts, color=cols, width=0.7)
+    b.axhline(1, color=SOFT, lw=0.8)
+    b.set_yscale("log")
+    b.set_xticks(x, [f"B{int(n[1]) + 1}H{n[3]}" for n in names], fontsize=8.5, rotation=0)
+    for i, v in enumerate(lifts):
+        if v > 5:
+            b.text(i, v * 1.12, f"×{v:.0f}", ha="center", fontsize=9, color=MODEL)
+    b.set_ylabel("nearby vs far past moments, same age")
+    b.set_xlabel("red: >5×   blue: >1.5×   gray: no preference", fontsize=9, color=SOFT)
+    b.set_title("Which heads look things up by location", fontsize=11)
+    fig.suptitle("Two heads retrieve what happened the last time the walker was nearby: attention indexed by place, not by time",
+                 x=0.01, ha="left", fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    fig.savefig(f"{FIG}/spatial_attention.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template", "multimaze"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template", "multimaze", "spatial_attention"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())

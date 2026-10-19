@@ -37,6 +37,7 @@ The model is never told the maze, the coordinates, or that walls exist. To predi
 | Place cells in the last MLP layer | 127 of 512 neurons; while uncertain they track P(cell), not the single most likely cell |
 | Place cells template-match the local sketch (causal) | own cell is the best of 64 templates for 58% of neurons (chance 1.6%) |
 | One network, four mazes | place cells remap (field corr. 0.13 across mazes); swapping the maze token switches the map (85%–89%) |
+| Heads that attend by place | B2H1 / B3H1 attend 15× / 35× more to past moments spent nearby than to equally old ones far away |
 | Does a steered belief persist to the next step? | **No** (14% vs 14% unsteered): location is recomputed from the history at every token |
 
 ## 1. The model is (nearly) Bayes-optimal, and the belief is in the residual stream
@@ -94,6 +95,10 @@ A passage that exists only around B pushes the belief toward B (+0.29 at α=8). 
 * **B1H1 is the integrator.** Removing it raises known-start KL from 0.0001 to 0.92. It is also the head whose attention is almost perfectly uniform over the history (normalised entropy 0.999), exactly the averaging dead reckoning needs.
 * **B1H3 reads the start token.** It gives position 0 the most attention of any head, and removing it hurts known-start walks most.
 * **Nine heads are localisation specialists**, costing 7–80× more when the start is unknown. The ones that matter most are B2H1, B2H3 and all four heads of block 3, the same depth where the egocentric sketch peaks.
+
+**Two heads look up the past by location** ([`experiments/spatial_attention.py`](experiments/spatial_attention.py)). Compared with past moments of the *same age*, B2H1 attends 15× more and B3H1 35× more to moments when the walker stood within one cell of where it is now. Their attention falls by about six orders of magnitude from "same cell" to "eight cells away", while the integrator B1H1 is flat. Their queries carry the current displacement and their keys the displacement at each past step, so attention is indexed by *place*, not time. They retrieve what happened the last time the walker was nearby, which is the raw material for the egocentric sketch.
+
+![Place-indexed attention](figures/spatial_attention.png)
 
 The emerging picture is a tiny, learned form of the SLAM that robots use: integrate your moves → build a local map of what you have walked, *relative to yourself* → match it against a map stored *in the weights* → read off where you are.
 
@@ -189,6 +194,7 @@ python experiments/policy_shift.py         # walking styles never seen in traini
 python experiments/place_cells.py          # place cells / belief neurons
 python experiments/template_matching.py    # do place cells template-match the local sketch?
 python experiments/multimaze.py            # four mazes in one network: remapping, map switching
+python experiments/spatial_attention.py    # heads that attend by location
 python -m cartographer.train --out runs/slip15 --slip 0.15 --p_known 0.5 && python experiments/slippery.py
 bash   experiments/sweep_mazes.sh          # 3 more mazes (+ README table: python experiments/summarize.py)
 python experiments/dynamics.py             # probes on training snapshots

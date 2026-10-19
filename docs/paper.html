@@ -120,7 +120,12 @@ P(B)/(P(A)+P(B)) by +0.28 ± 0.01 at α = 8. One that exists only around A shift
 candidate cell at which that passage exists. Bands: 95% intervals.</figcaption></figure>
 <p><b>Heads.</b> Mean-ablating single heads separates roles. Block-1 head 1 attends almost exactly uniformly (normalised entropy 0.999) and is
 the integrator: ablating it raises known-start KL from 0.0001 to 0.92. Block-1 head 3 reads the start token. Nine heads, concentrated in
-blocks 2 and 3, cost 7–80× more when the start is unknown than when it is given.</p>
+blocks 2 and 3, cost 7–80× more when the start is unknown than when it is given. Two of them attend by location: relative to
+past tokens of the same age, B2H1 and B3H1 put 15× and 35× more attention on moments when the walker was within one cell of its current
+position, and their attention falls about six orders of magnitude between distance 0 and 8. They retrieve the history at the current place,
+the input the egocentric sketch needs (Fig. 5b).</p>
+<figure><img src="figs/spatial_attention.png" alt=""><figcaption><b>Figure 5b.</b> Left: attention to past tokens versus the spatial distance
+between the walker's position then and now. Right: preference for nearby over far past moments of equal age, per head.</figcaption></figure>
 <figure class="half"><img src="figs/heads.png" alt=""><figcaption><b>Figure 5.</b> Damage from mean-ablating each head, for known-start
 (x) versus unknown-start (y) walks.</figcaption></figure>
 
