@@ -89,7 +89,7 @@ A passage that exists only around B pushes the belief toward B (+0.29 at α=8). 
 
 * **B1H1 is the integrator.** Removing it raises known-start KL from 0.0001 to 0.92. It is also the head whose attention is almost perfectly uniform over the history (normalised entropy 0.999), exactly the averaging dead reckoning needs.
 * **B1H3 reads the start token.** It gives position 0 the most attention of any head, and removing it hurts known-start walks most.
-* **Eight heads are localisation specialists.** All of block 3, plus B2H1 and B2H3, cost 5–75× more when the start is unknown. This matches where the egocentric sketch peaks.
+* **Nine heads are localisation specialists**, costing 7–80× more when the start is unknown. The ones that matter most are B2H1, B2H3 and all four heads of block 3, the same depth where the egocentric sketch peaks.
 
 The emerging picture is a tiny, learned form of the SLAM that robots use: integrate your moves → build a local map of what you have walked, *relative to yourself* → match it against a map stored *in the weights* → read off where you are.
 
