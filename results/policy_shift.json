@@ -1,0 +1,26 @@
+{
+ "uniform": {
+  "legal_set_acc": 0.9973846077919006,
+  "legal_set_acc_late": 0.9948484897613525,
+  "probe_cell_acc": 0.9969230890274048,
+  "unknown_legal_set_acc_localised": 0.9882259964942932,
+  "unknown_probe_cell_acc_localised": 0.937355637550354,
+  "unknown_frac_localised_by_t32": 0.8737499713897705
+ },
+ "no-backtrack": {
+  "legal_set_acc": 0.9975192546844482,
+  "legal_set_acc_late": 0.9951136112213135,
+  "probe_cell_acc": 0.9961923360824585,
+  "unknown_legal_set_acc_localised": 0.9881211519241333,
+  "unknown_probe_cell_acc_localised": 0.9375157356262207,
+  "unknown_frac_localised_by_t32": 0.9975000023841858
+ },
+ "momentum": {
+  "legal_set_acc": 0.9975961446762085,
+  "legal_set_acc_late": 0.9952651262283325,
+  "probe_cell_acc": 0.9962692260742188,
+  "unknown_legal_set_acc_localised": 0.9870272874832153,
+  "unknown_probe_cell_acc_localised": 0.9331661462783813,
+  "unknown_frac_localised_by_t32": 0.9375
+ }
+}
