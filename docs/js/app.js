@@ -200,6 +200,57 @@ function update() {
   }).join("") + (last >= MAXT ? ` <em class="note">context full</em>` : "");
 
   drawAttention();
+  drawEgo(out.resid[model.ego.layer][last]);
+}
+
+// ---- Fig. e: egocentric sketch
+const DRS = [-1, 0, 1, 0], DCS = [0, 1, 0, -1];
+function trueEgo() {
+  const R = model.ego.R, K = 2 * R + 1;
+  let r = 0, c = 0;
+  const cells = new Set(["0,0"]), edges = new Set();
+  for (let i = 1; i < S.tokens.length; i++) {
+    const m = S.tokens[i], r2 = r + DRS[m], c2 = c + DCS[m];
+    if (m === 1) edges.add(`${r},${c},0`); else if (m === 3) edges.add(`${r2},${c2},0`);
+    else if (m === 2) edges.add(`${r},${c},1`); else edges.add(`${r2},${c2},1`);
+    r = r2; c = c2; cells.add(`${r},${c}`);
+  }
+  const visited = new Array(K * K).fill(0), passages = new Array(K * K * 2).fill(0);
+  for (const k of cells) { const [a, b] = k.split(",").map(Number); const i = a - r + R, j = b - c + R; if (i >= 0 && j >= 0 && i < K && j < K) visited[i * K + j] = 1; }
+  for (const k of edges) { const [a, b, d] = k.split(",").map(Number); const i = a - r + R, j = b - c + R; if (i >= 0 && j >= 0 && i < K && j < K) passages[(i * K + j) * 2 + d] = 1; }
+  return { visited, passages };
+}
+
+function drawEgoCanvas(cv, ego, color) {
+  const R = model.ego.R, K = 2 * R + 1, ctx = cv.getContext("2d"), W = cv.width, pad = 8, cs = (W - 2 * pad) / K;
+  ctx.clearRect(0, 0, W, cv.height);
+  ctx.fillStyle = "rgba(255,252,243,.35)"; ctx.fillRect(pad, pad, cs * K, cs * K);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.5; ctx.setLineDash([2, 3]);
+  for (let i = 0; i <= K; i++) {
+    ctx.beginPath(); ctx.moveTo(pad + i * cs, pad); ctx.lineTo(pad + i * cs, pad + K * cs); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad, pad + i * cs); ctx.lineTo(pad + K * cs, pad + i * cs); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  const rgba = (a) => `rgba(${color.join(",")},${a.toFixed(3)})`;
+  for (let i = 0; i < K; i++) for (let j = 0; j < K; j++) {
+    const v = ego.visited[i * K + j];
+    if (v > 0.05) { ctx.fillStyle = rgba(0.12 + 0.3 * v); ctx.fillRect(pad + j * cs + 2, pad + i * cs + 2, cs - 4, cs - 4); }
+  }
+  ctx.lineCap = "round"; ctx.lineWidth = cs * 0.22;
+  for (let i = 0; i < K; i++) for (let j = 0; j < K; j++) for (let d = 0; d < 2; d++) {
+    const v = ego.passages[(i * K + j) * 2 + d];
+    if (v < 0.08) continue;
+    const x = pad + (j + 0.5) * cs, y = pad + (i + 0.5) * cs;
+    ctx.strokeStyle = rgba(Math.min(1, 0.15 + 0.85 * v));
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (d === 0 ? cs : 0), y + (d === 1 ? cs : 0)); ctx.stroke();
+  }
+  const x = pad + (R + 0.5) * cs, y = pad + (R + 0.5) * cs;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, cs * 0.3, 0, 7); ctx.stroke();
+}
+
+function drawEgo(vec) {
+  drawEgoCanvas($("#egoTrue"), trueEgo(), C.indigo);
+  drawEgoCanvas($("#egoModel"), model.egoMap(vec), C.verm);
 }
 
 function drawAttention() {
@@ -307,7 +358,10 @@ async function extract() {
   extracting = false;
 }
 drawMaze($("#extTruth"), null, null);
-drawMaze($("#extModel"), null, null, { open: world.open.map((r) => r.map(() => true)) });
+drawMaze($("#extModel"), null, null, { open: world.open.map((row, c) => row.map((_, d) => {
+  const r = Math.floor(c / world.W) + DRS[d], q = (c % world.W) + DCS[d];
+  return r >= 0 && q >= 0 && r < world.H && q < world.W;           // only the outer boundary until extracted
+})) });
 $("#extractBtn").onclick = extract;
 if (location.hash === "#extract") setTimeout(extract, 300);
 

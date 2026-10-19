@@ -222,7 +222,7 @@ def fig_depth():
     ax.set_xlim(0.6, Ls[-1] + 1.6)
     ax.set_xlabel("number of transformer blocks (width fixed at 128)")
     ax.set_ylabel("KL to Bayes-optimal (nats / move)")
-    ax.set_title("Localisation needs depth; dead reckoning does not")
+    ax.set_title("Localisation needs depth; one block nearly solves dead reckoning")
     fig.tight_layout()
     fig.savefig(f"{FIG}/depth.png", dpi=160)
     plt.close(fig)

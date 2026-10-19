@@ -19,7 +19,7 @@ import torch
 import torch.nn.functional as F
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from cartographer.analysis import collect, fit_belief_probe, make_dataset  # noqa: E402
+from cartographer.analysis import collect, fit_belief_probe, fit_multilabel_probe, make_dataset  # noqa: E402
 from cartographer.env import Maze  # noqa: E402
 from cartographer.model import load_model  # noqa: E402
 
@@ -58,6 +58,19 @@ def main():
         probes[k] = {"W": b64(pr.lin.weight), "b": b64(pr.lin.bias), "means": b64(means)}
         print("probe", k, flush=True)
 
+    # egocentric-map probes (visited cells + walked passages in a 7x7 window around the walker)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from egocentric import R as EGO_R, ego_targets
+    ego_data = make_dataset(maze, 3000, ck["args"]["T"], 0.0, seed=111)
+    Vt, Et = ego_targets(ego_data)
+    Xe = collect(model, ego_data["tokens"], ["resid_3"])["resid_3"]
+    Xe = Xe.reshape(-1, Xe.shape[-1])
+    ego = {"R": EGO_R, "layer": 3}
+    for name, Y in (("visited", Vt), ("passages", Et)):
+        pr = fit_multilabel_probe(Xe, torch.tensor(Y).reshape(-1, Y.shape[-1]), device=args.device).cpu()
+        ego[name] = {"W": b64(pr.lin.weight), "b": b64(pr.lin.bias)}
+    print("ego probes", flush=True)
+
     # reference check for the JS implementation
     ref_tokens = train["tokens"][0, :20].tolist()
     cache = {}
@@ -72,7 +85,7 @@ def main():
 
     out = {"config": ck["config"], "maze": maze.to_dict(),
            "weights": {k: b64(v) for k, v in sd.items()},
-           "probes": probes, "reference": ref}
+           "probes": probes, "ego": ego, "reference": ref}
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(out, f)

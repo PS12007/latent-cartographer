@@ -83,7 +83,7 @@ The emerging picture is a tiny, learned form of the SLAM that robots use: integr
 
 ![Depth sweep](figures/depth.png)
 
-With width and training budget fixed, one block is enough for dead reckoning from a known start (KL 0.003) but badly fails to localise from an unknown start (0.21). Every extra block helps localisation, which fits a computation that needs several sequential stages: integrate, gather local evidence, match.
+With width and training budget fixed, one block already does dead reckoning from a known start well (KL 0.003), but fails badly at localising from an unknown start (0.21, about 80× worse). Each extra block cuts localisation error by roughly 2–5× (0.21 → 0.044 → 0.015 → 0.006 → 0.0026 for 1/2/3/4/6 blocks), which fits a computation with several sequential stages: integrate, build the local map, match. (Deeper models also have more parameters, 0.2M → 1.2M, so this is depth *and* size.)
 
 ![Training dynamics](figures/dynamics.png)
 

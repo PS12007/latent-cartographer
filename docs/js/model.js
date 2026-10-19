@@ -54,6 +54,9 @@ export class GPT {
     for (const [k, v] of Object.entries(json.weights)) this.w[k] = decode(v);
     this.probes = {};
     for (const [k, v] of Object.entries(json.probes)) this.probes[k] = { W: decode(v.W), b: decode(v.b), means: decode(v.means) };
+    if (json.ego) this.ego = { R: json.ego.R, layer: json.ego.layer,
+      visited: { W: decode(json.ego.visited.W), b: decode(json.ego.visited.b) },
+      passages: { W: decode(json.ego.passages.W), b: decode(json.ego.passages.b) } };
   }
 
   // tokens: int[]; edit: optional {layer, delta: Float32Array} added at the last position
@@ -110,6 +113,14 @@ export class GPT {
     resid.push(x);
     const logits = x.map((xi) => linear(layerNorm(xi, w["ln_f.weight"], w["ln_f.bias"]), w["head.weight"], w["head.bias"]));
     return { logits, resid, attn };
+  }
+
+  // Egocentric map decoded from the residual stream: P(visited) for each offset in a
+  // (2R+1)^2 window around the walker, and P(walked) for the passage east/south of each.
+  egoMap(vec) {
+    const sig = (z) => Array.from(z, (v) => 1 / (1 + Math.exp(-v)));
+    return { visited: sig(linear(vec, this.ego.visited.W, this.ego.visited.b)),
+             passages: sig(linear(vec, this.ego.passages.W, this.ego.passages.b)) };
   }
 
   probeLogits(layer, vec) {

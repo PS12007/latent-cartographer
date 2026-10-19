@@ -83,8 +83,19 @@
     <div class="attn" id="attn"></div>
     <p class="note">Attention from the newest token to every earlier token, for one head.</p>
   </section>
+  <section class="sheet ego">
+    <div class="sheet-head"><span class="fig">Fig. e</span><h2>Its local sketch</h2></div>
+    <div class="ego-pair">
+      <figure><canvas id="egoTrue" width="220" height="220"></canvas><figcaption>what it actually walked</figcaption></figure>
+      <figure><canvas id="egoModel" width="220" height="220"></canvas><figcaption>what block 3 remembers</figcaption></figure>
+    </div>
+    <p class="note">A 7×7 window centred on the walker (ring). It holds no maze coordinates, only a local sketch of visited cells
+      and walked passages. The model matches this sketch against the maze stored in its weights to work out where it is.
+      Editing one remembered passage moves its belief between candidate cells.</p>
+  </section>
+
   <section class="sheet extract">
-    <div class="sheet-head"><span class="fig">Fig. e</span><h2>The map, redrawn from the model’s mind</h2></div>
+    <div class="sheet-head"><span class="fig">Fig. f</span><h2>The map, redrawn from the model’s mind</h2></div>
     <div class="extract-row">
       <div class="extract-text">
         <p>Take a walk where the model knows where it is. For each of the 64 cells, steer its belief to that cell and record
@@ -113,7 +124,7 @@
     <p>Steering tests whether the representation is <em>used</em>. Clicking a cell pushes the newest token’s residual
       vector along the probe’s direction for that cell. If the model consults this internal map, its next-move prediction
       should switch to the walls of the new cell, and after block 3 it does so about 90% of the time (random pushes of the
-      same size: 4%). Do it for every cell and the whole maze can be redrawn from the model alone (Fig. e).
+      same size: 4%). Do it for every cell and the whole maze can be redrawn from the model alone (Fig. f).
       One surprise: the edit does not carry over to the next step. The model rebuilds its location from the raw move history
       at every token instead of carrying it forward like a recurrent network. Full analysis in the
       <a href="https://github.com/PS12007/latent-cartographer">repository</a>.</p>
