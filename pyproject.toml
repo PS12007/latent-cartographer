@@ -1,0 +1,10 @@
+[project]
+name = "latent-cartographer"
+version = "0.1.0"
+description = "A transformer trained only on N/E/S/W moves builds a map: belief tracking, causal steering, and map extraction."
+requires-python = ">=3.10"
+dependencies = ["torch>=2.2", "numpy>=1.26", "matplotlib>=3.8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
