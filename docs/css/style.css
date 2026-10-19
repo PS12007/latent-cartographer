@@ -159,6 +159,17 @@ figcaption strong { color: var(--ink); font-weight: 500; }
 .cols { columns: 3 280px; column-gap: 36px; column-rule: 1px solid var(--rule); }
 .cols p { margin: 0 0 14px; break-inside: avoid-column; }
 .cols p:first-child::first-letter { font-family: var(--serif); float: left; font-size: 64px; line-height: .8; padding: 6px 8px 0 0; color: var(--verm); }
+.findings { max-width: 1240px; margin: 48px auto 0; padding: 0 28px; }
+.findings h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; letter-spacing: -.02em; border-top: 2px solid var(--ink); padding-top: 14px; margin: 0 0 8px; }
+.findings .lede { max-width: 760px; color: var(--ink-soft); margin: 0 0 22px; }
+.findings img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); background: #f7f2e6; }
+.findings figure.wide { margin: 0 0 30px; }
+.findings figcaption { font-size: 14.5px; color: var(--ink-soft); margin-top: 8px; max-width: 900px; }
+.find { display: grid; grid-template-columns: 300px 1fr; gap: 28px; align-items: start; padding: 22px 0; border-top: 1px solid var(--rule); }
+.find h3 { font-family: var(--serif); font-weight: 500; font-size: 20px; margin: 0 0 8px; letter-spacing: -.01em; }
+.find img.narrow { max-width: 640px; }
+.find p { margin: 0; font-size: 16px; color: var(--ink-soft); }
+@media (max-width: 860px) { .find { grid-template-columns: 1fr; gap: 12px; } .findings { padding: 0 16px; } }
 footer { max-width: 1240px; margin: 40px auto 0; padding: 18px 28px 48px; font-family: var(--mono); font-size: 12px; color: var(--ink-soft); border-top: 1px solid var(--rule); }
 
 .extract { grid-column: 2 / -1; }

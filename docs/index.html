@@ -138,6 +138,51 @@
   </div>
 </section>
 
+<section class="findings">
+  <h2>Findings</h2>
+  <p class="lede">Everything below comes from the same 0.8M-parameter model you just played with. Each claim is backed by
+    a probe, an intervention, or both; code and numbers are in the <a href="https://github.com/PS12007/latent-cartographer">repository</a>.</p>
+
+  <figure class="wide"><img src="figs/pipeline.svg" alt="Pipeline: dead reckoning, egocentric sketch, match against the stored maze, belief over cells">
+    <figcaption><b>The algorithm, in one picture.</b> Block 1 integrates moves into a displacement. Blocks 2–3 build a sketch
+      of walked passages relative to the walker. Block 4 matches that sketch against a maze stored in the weights. The whole
+      thing is redone from scratch at every token.</figcaption></figure>
+
+  <div class="find">
+    <div><h3>1 · The belief is in the residual stream</h3>
+      <p>A 64-way linear probe recovers the exact Bayesian posterior over cells with KL 0.10 nats, against 1.64 when decoding from the
+        model’s own output. Displacement appears first (block 1); the belief sharpens with every later block.</p></div>
+    <img src="figs/probes.png" alt="Probes across depth">
+  </div>
+  <div class="find">
+    <div><h3>2 · It is causal, and the maze can be read back out</h3>
+      <p>Pushing the newest token’s activations along the probe direction for another cell makes the model expect that cell’s
+        walls 90% of the time (random pushes: 4%). Doing this for every cell recovers all 112 interior walls. The edit does
+        <em>not</em> persist to the next token: location is rebuilt from the history every step.</p></div>
+    <img src="figs/steering.png" alt="Steering results">
+  </div>
+  <div class="find">
+    <div><h3>3 · It localises with an egocentric sketch</h3>
+      <p>Blocks 2–3 hold a map of where the walker has been <em>relative to itself</em>: visited cells and walked passages.
+        It peaks before the maze-frame position does. Writing one remembered passage into it moves the belief toward whichever
+        candidate cell actually has that passage.</p></div>
+    <img class="narrow" src="figs/egocausal.png" alt="Egocentric map causal test">
+  </div>
+  <div class="find">
+    <div><h3>4 · The early map is a flat sheet shaped like the grid</h3>
+      <p>Cell-average activations after block 1 lie on a 2-D sheet (85% of variance) that redraws the maze. Distances follow
+        grid coordinates, not walking distance. By block 4 the same cells are regrouped by which walls they have, the format
+        needed to choose a move.</p></div>
+    <img src="figs/geometry.png" alt="Geometry of the internal map">
+  </div>
+  <div class="find">
+    <div><h3>5 · Heads divide the labour</h3>
+      <p>One head (B1H1, uniform attention) is the move integrator; removing it ruins even known-start prediction. Nine heads,
+        concentrated in blocks 2–3, matter almost only when the start is unknown. Try knocking them out in Fig. d.</p></div>
+    <img class="narrow" src="figs/heads.png" alt="Head ablations">
+  </div>
+</section>
+
 <footer>Model runs entirely in your browser in plain JavaScript · <a href="https://github.com/PS12007/latent-cartographer">source &amp; paper-style write-up</a></footer>
 
 <script type="module" src="js/app.js"></script>
