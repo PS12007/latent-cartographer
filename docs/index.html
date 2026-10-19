@@ -181,6 +181,13 @@
         concentrated in blocks 2–3, matter almost only when the start is unknown. Try knocking them out in Fig. d.</p></div>
     <img class="narrow" src="figs/heads.png" alt="Head ablations">
   </div>
+  <div class="find">
+    <div><h3>6 · It replicates</h3>
+      <p>Retrained from scratch on three more 8×8 mazes: every wall recovered each time, steering works 82–90%, and edits never
+        persist. On a 12×12 maze with the same small model, 261 of 264 walls come back. The map also survives walking styles
+        never seen in training (98.7% legal-move accuracy when lost).</p></div>
+    <img class="narrow" src="figs/map_big12.png" alt="12x12 maze extracted from the model">
+  </div>
 </section>
 
 <footer>Model runs entirely in your browser in plain JavaScript · <a href="https://github.com/PS12007/latent-cartographer">source &amp; paper-style write-up</a></footer>
