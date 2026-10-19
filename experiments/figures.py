@@ -319,8 +319,34 @@ def fig_egocausal():
     plt.close(fig)
 
 
+# ------------------------------------------------------------------ Fig 8: head ablations
+def fig_heads():
+    R = load("results/head_ablation.json")
+    b = R["baseline"]
+    fig, ax = plt.subplots(figsize=(6.8, 5.4))
+    ax.plot([1e-4, 2], [1e-4, 2], color=CTRL, lw=1, ls=":")
+    ax.text(1.0, 1.25, "equal harm", color=SOFT, fontsize=9, rotation=38, ha="center")
+    for name, v in R["heads"].items():
+        dk, du = max(v["known"] - b[0], 1e-4), max(v["unknown"] - b[1], 1e-4)
+        col = REF if du > 5 * dk else MODEL if dk > 0.05 else CTRL   # specialist / integrator / minor
+        ax.plot(dk, du, "o", ms=8, color=col, mec=SURF, mew=1.5)
+        l, h = int(name[1]), int(name[3])
+        ax.annotate(f"B{l + 1}H{h}", (dk, du), textcoords="offset points", xytext=(6, -3), fontsize=8.5, color=INK)
+    ax.set_xscale("log"); ax.set_yscale("log")
+    ax.set_xlim(5e-4, 2); ax.set_ylim(5e-3, 2)
+    ax.set_xlabel("extra KL when the start is given (dead reckoning)")
+    ax.set_ylabel("extra KL when the start is unknown (localisation)")
+    ax.text(6e-4, 1.2, "localisation-specific\n(>5× more harm when lost)", color=REF, fontsize=9.5, va="top")
+    ax.text(0.9, 7e-3, "needed for\ndead reckoning", color=MODEL, fontsize=9.5, ha="right")
+    ax.text(2.5e-3, 7e-3, "gray: minor for both", color=SOFT, fontsize=9)
+    ax.set_title("Mean-ablating each of the 16 attention heads")
+    fig.tight_layout()
+    fig.savefig(f"{FIG}/heads.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())

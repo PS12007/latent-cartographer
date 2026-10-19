@@ -35,6 +35,7 @@ class Attention(nn.Module):
         self.proj = nn.Linear(cfg.d_model, cfg.d_model)
         mask = torch.tril(torch.ones(cfg.block_size, cfg.block_size, dtype=torch.bool))
         self.register_buffer("mask", mask, persistent=False)
+        self.head_hook = None
 
     def forward(self, x, cache=None, prefix=""):
         B, S, D = x.shape
@@ -51,6 +52,8 @@ class Attention(nn.Module):
             cache[prefix + "attn"] = att
             y = att @ v
             cache[prefix + "head_out"] = y  # (B,H,S,dh) before output proj
+        if self.head_hook is not None:  # edit per-head outputs, e.g. for ablations
+            y = self.head_hook(y)
         y = y.transpose(1, 2).contiguous().view(B, S, D)
         return self.proj(y)
 

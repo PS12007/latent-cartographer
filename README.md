@@ -83,6 +83,14 @@ The egocentric map peaks in **block 3** (visited cells 0.89, walked passages 0.8
 
 A passage that exists only around B pushes the belief toward B (+0.29 at α=8). One that exists only around A pushes it toward A (−0.11). A passage that exists around both does little (+0.07). Relative to that control the effects are +0.22 and −0.18, in opposite directions, as the matching story predicts. (The control drifts slightly toward B because the model, like the exact posterior, starts out favouring the true cell A on average, and any disruption pulls it back toward 50/50.)
 
+**Heads divide the work** ([`experiments/head_ablation.py`](experiments/head_ablation.py)). Mean-ablating one head at a time and measuring the damage separately for known- and unknown-start walks:
+
+<p align="center"><img src="figures/heads.png" width="560" alt="Head ablations"></p>
+
+* **B1H1 is the integrator.** Removing it raises known-start KL from 0.0001 to 0.92. It is also the head whose attention is almost perfectly uniform over the history (normalised entropy 0.999), exactly the averaging dead reckoning needs.
+* **B1H3 reads the start token.** It gives position 0 the most attention of any head, and removing it hurts known-start walks most.
+* **Eight heads are localisation specialists.** All of block 3, plus B2H1 and B2H3, cost 5–75× more when the start is unknown. This matches where the egocentric sketch peaks.
+
 The emerging picture is a tiny, learned form of the SLAM that robots use: integrate your moves → build a local map of what you have walked, *relative to yourself* → match it against a map stored *in the weights* → read off where you are.
 
 ## 4. Depth and training dynamics
