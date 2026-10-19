@@ -23,10 +23,10 @@ from .model import GPT, GPTConfig
 
 
 @torch.no_grad()
-def evaluate(model, maze, bf, n=2048, T=64, seed=12345, p_known=0.5):
+def evaluate(model, maze, bf, n=2048, T=64, seed=12345, p_known=0.5, slip=0.0):
     dev = next(model.parameters()).device
     rng = np.random.default_rng(seed)
-    tokens, cells, known = sample_walks(maze, n, T, p_known, rng)
+    tokens, cells, known = sample_walks(maze, n, T, p_known, rng, slip=slip)
     tok = torch.tensor(tokens, device=dev)
     _, pred = bf.run(tok)                       # (n, T+1, 4) optimal predictive
     pred = pred[:, :-1].float().to(dev)                 # predict m_{t+1} from prefix ending at t
@@ -67,6 +67,7 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--eval_every", type=int, default=250)
     ap.add_argument("--snapshots", type=int, default=12, help="checkpoints saved along training (for dynamics)")
+    ap.add_argument("--slip", type=float, default=0.0, help="probability a move silently fails")
     ap.add_argument("--threads", type=int, default=16)
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = ap.parse_args()
@@ -75,7 +76,7 @@ def main():
     torch.manual_seed(args.seed)
     os.makedirs(args.out, exist_ok=True)
     maze = make_maze(args.H, args.W, args.braid, args.maze_seed)
-    bf = BayesFilter(maze, device=args.device)
+    bf = BayesFilter(maze, device=args.device, slip=args.slip)
     cfg = GPTConfig(vocab_size=maze.vocab_size, block_size=args.T + 1, n_layer=args.n_layer,
                     n_head=args.n_head, d_model=args.d_model, d_mlp=4 * args.d_model)
     model = GPT(cfg).to(args.device)
@@ -105,7 +106,7 @@ def main():
     for step in range(args.steps + 1):
         if step % args.eval_every == 0 or step == args.steps:
             model.eval()
-            ev = evaluate(model, maze, bf, T=args.T)
+            ev = evaluate(model, maze, bf, T=args.T, slip=args.slip)
             model.train()
             ev.update(step=step, time=time.time() - t0)
             log.append(ev)
@@ -116,7 +117,7 @@ def main():
             save(os.path.join(args.out, "snapshots", f"step{step:06d}.pt"), step)
         if step == args.steps:
             break
-        tokens, _, _ = sample_walks(maze, args.batch, args.T, args.p_known, rng)
+        tokens, _, _ = sample_walks(maze, args.batch, args.T, args.p_known, rng, slip=args.slip)
         tok = torch.from_numpy(tokens).to(args.device, non_blocking=True)
         logits = model(tok[:, :-1])
         loss = F.cross_entropy(logits.reshape(-1, 4), tok[:, 1:].reshape(-1))

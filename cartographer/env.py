@@ -121,8 +121,11 @@ def make_maze(H: int = 8, W: int = 8, braid: float = 0.35, seed: int = 0) -> Maz
     return Maze(H, W, op, seed)
 
 
-def sample_walks(maze: Maze, B: int, T: int, p_known: float, rng: np.random.Generator):
+def sample_walks(maze: Maze, B: int, T: int, p_known: float, rng: np.random.Generator, slip: float = 0.0):
     """Sample B uniform random walks of T moves.
+
+    slip: probability that a chosen move silently fails (the move token is still
+    emitted, but the walker stays where it is). 0 = the deterministic world.
 
     Returns
       tokens: (B, T+1) int64 — [start_token, m_1, ..., m_T]
@@ -138,7 +141,10 @@ def sample_walks(maze: Maze, B: int, T: int, p_known: float, rng: np.random.Gene
         legal = maze.open[cur]
         m = np.argmax(rng.random((B, 4)) * legal, axis=1)
         moves[:, t] = m
-        cur = nxt[cur, m]
+        moved = nxt[cur, m]
+        if slip > 0:
+            moved = np.where(rng.random(B) < slip, cur, moved)
+        cur = moved
         cells[:, t + 1] = cur
     known = rng.random(B) < p_known
     start_tok = np.where(known, START0 + cells[:, 0], UNK)
@@ -149,7 +155,7 @@ def sample_walks(maze: Maze, B: int, T: int, p_known: float, rng: np.random.Gene
 class BayesFilter:
     """Exact posterior over the walker's cell given the token prefix."""
 
-    def __init__(self, maze: Maze, device="cpu"):
+    def __init__(self, maze: Maze, device="cpu", slip: float = 0.0):
         self.maze = maze
         N = maze.N
         deg = maze.degree().astype(np.float64)
@@ -159,7 +165,8 @@ class BayesFilter:
         for m in range(4):
             for c in range(N):
                 if maze.open[c, m]:
-                    Tm[m, c, nxt[c, m]] = L[c, m]
+                    Tm[m, c, nxt[c, m]] += (1 - slip) * L[c, m]
+                    Tm[m, c, c] += slip * L[c, m]
         self.L = torch.tensor(L, dtype=torch.float64, device=device)
         self.Tm = torch.tensor(Tm, dtype=torch.float64, device=device)
 

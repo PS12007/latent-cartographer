@@ -162,6 +162,7 @@ python experiments/egocentric_causal.py    # editing one remembered passage
 python experiments/head_ablation.py        # per-head mean ablations
 python experiments/geometry.py             # shape of the internal map
 python experiments/policy_shift.py         # walking styles never seen in training
+python experiments/place_cells.py          # place cells / belief neurons
 bash   experiments/sweep_mazes.sh          # 3 more mazes (+ README table: python experiments/summarize.py)
 python experiments/dynamics.py             # probes on training snapshots
 bash   experiments/sweep_depth.sh          # depth sweep

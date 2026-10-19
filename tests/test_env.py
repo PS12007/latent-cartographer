@@ -90,3 +90,26 @@ def test_model_cache_and_hook_shapes():
     torch.testing.assert_close(model(idx, resid_hook=lambda l, x: x), out)
     z = model(idx, resid_hook=lambda l, x: x * 0 if l == 2 else x)
     assert torch.allclose(z, z[:1, :1].expand_as(z), atol=1e-6)
+
+
+def test_slippery_filter_matches_brute_force():
+    """With slips, the posterior must equal exact enumeration over all slip patterns."""
+    import itertools
+    m = make_maze(4, 4, 0.4, seed=5)
+    slip = 0.2
+    rng = np.random.default_rng(4)
+    tok, cells, known = sample_walks(m, 6, 6, 1.0, rng, slip=slip)
+    beliefs, _ = BayesFilter(m, slip=slip).run(torch.tensor(tok))
+    nxt, deg = m.nxt(), m.degree()
+    for b in range(6):
+        post = np.zeros(m.N)
+        for pattern in itertools.product([0, 1], repeat=6):     # 1 = slipped
+            p, c = 1.0, cells[b, 0]
+            for mv, sl in zip(tok[b, 1:], pattern):
+                if not m.open[c, mv]:
+                    p = 0.0
+                    break
+                p *= (1 / deg[c]) * (slip if sl else 1 - slip)
+                c = c if sl else nxt[c, mv]
+            post[c] += p
+        np.testing.assert_allclose(beliefs[b, -1].numpy(), post / post.sum(), atol=1e-10)
