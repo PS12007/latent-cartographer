@@ -1,0 +1,950 @@
+[
+ {
+  "step": 50,
+  "kl_known": 0.35136526823043823,
+  "kl_unknown": 0.2956242859363556,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03371173143386841,
+    "consistent_bacc": 0.5,
+    "belief_kl": 3.504145383834839,
+    "belief_kl_uncertain": 2.1178927421569824,
+    "cell_acc_localized": 0.02655172348022461
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.38215234875679016,
+    "consistent_bacc": 0.5670293569564819,
+    "belief_kl": 3.4251677989959717,
+    "belief_kl_uncertain": 2.0601630210876465,
+    "cell_acc_localized": 0.05385579913854599
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.49328434467315674,
+    "consistent_bacc": 0.5665283203125,
+    "belief_kl": 3.305614471435547,
+    "belief_kl_uncertain": 2.003816604614258,
+    "cell_acc_localized": 0.06015674024820328
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.5796675682067871,
+    "consistent_bacc": 0.5892930626869202,
+    "belief_kl": 3.2768990993499756,
+    "belief_kl_uncertain": 2.0132477283477783,
+    "cell_acc_localized": 0.06648902595043182
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.6086187362670898,
+    "consistent_bacc": 0.6065416932106018,
+    "belief_kl": 3.241874933242798,
+    "belief_kl_uncertain": 2.016906499862671,
+    "cell_acc_localized": 0.06655172258615494
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.6272350549697876,
+    "consistent_bacc": 0.6185396909713745,
+    "belief_kl": 3.218262195587158,
+    "belief_kl_uncertain": 2.026128053665161,
+    "cell_acc_localized": 0.07222570478916168
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.6371592283248901,
+    "consistent_bacc": 0.6224687099456787,
+    "belief_kl": 3.203141450881958,
+    "belief_kl_uncertain": 2.0332953929901123,
+    "cell_acc_localized": 0.07329153269529343
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.644328773021698,
+    "consistent_bacc": 0.6260157227516174,
+    "belief_kl": 3.195155620574951,
+    "belief_kl_uncertain": 2.0358057022094727,
+    "cell_acc_localized": 0.07379310578107834
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.6483598947525024,
+    "consistent_bacc": 0.6281307935714722,
+    "belief_kl": 3.191518783569336,
+    "belief_kl_uncertain": 2.039985418319702,
+    "cell_acc_localized": 0.07438871264457703
+   }
+  }
+ },
+ {
+  "step": 86,
+  "kl_known": 0.3373265564441681,
+  "kl_unknown": 0.2908836901187897,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03380659222602844,
+    "consistent_bacc": 0.5,
+    "belief_kl": 3.49979567527771,
+    "belief_kl_uncertain": 2.1132423877716064,
+    "cell_acc_localized": 0.026489028707146645
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.47295239567756653,
+    "consistent_bacc": 0.603776752948761,
+    "belief_kl": 3.372440814971924,
+    "belief_kl_uncertain": 2.0523571968078613,
+    "cell_acc_localized": 0.06376175582408905
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.6447586417198181,
+    "consistent_bacc": 0.6233111619949341,
+    "belief_kl": 3.206033945083618,
+    "belief_kl_uncertain": 2.0358214378356934,
+    "cell_acc_localized": 0.0729467049241066
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.6971998810768127,
+    "consistent_bacc": 0.6476563811302185,
+    "belief_kl": 3.123917579650879,
+    "belief_kl_uncertain": 2.049058437347412,
+    "cell_acc_localized": 0.08934169262647629
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.7397695779800415,
+    "consistent_bacc": 0.6546821594238281,
+    "belief_kl": 3.0732948780059814,
+    "belief_kl_uncertain": 2.0527455806732178,
+    "cell_acc_localized": 0.09231974929571152
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.7540557384490967,
+    "consistent_bacc": 0.6393613219261169,
+    "belief_kl": 3.0237948894500732,
+    "belief_kl_uncertain": 2.079378128051758,
+    "cell_acc_localized": 0.10652037709951401
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.7633844614028931,
+    "consistent_bacc": 0.6480303406715393,
+    "belief_kl": 3.005657434463501,
+    "belief_kl_uncertain": 2.083218574523926,
+    "cell_acc_localized": 0.10768025368452072
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.771153450012207,
+    "consistent_bacc": 0.6490383148193359,
+    "belief_kl": 2.9891932010650635,
+    "belief_kl_uncertain": 2.0913209915161133,
+    "cell_acc_localized": 0.11197492480278015
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.7773747444152832,
+    "consistent_bacc": 0.6466270089149475,
+    "belief_kl": 2.9885470867156982,
+    "belief_kl_uncertain": 2.087984323501587,
+    "cell_acc_localized": 0.1090909093618393
+   }
+  }
+ },
+ {
+  "step": 148,
+  "kl_known": 0.31762227416038513,
+  "kl_unknown": 0.2892877757549286,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.033978432416915894,
+    "consistent_bacc": 0.5,
+    "belief_kl": 3.492339849472046,
+    "belief_kl_uncertain": 2.1062192916870117,
+    "cell_acc_localized": 0.026677116751670837
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.5366477370262146,
+    "consistent_bacc": 0.6462368965148926,
+    "belief_kl": 3.2906367778778076,
+    "belief_kl_uncertain": 2.0701465606689453,
+    "cell_acc_localized": 0.07827585935592651
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.8013545274734497,
+    "consistent_bacc": 0.642680823802948,
+    "belief_kl": 3.0691754817962646,
+    "belief_kl_uncertain": 2.0576345920562744,
+    "cell_acc_localized": 0.09523510932922363
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.8256250023841858,
+    "consistent_bacc": 0.6335822343826294,
+    "belief_kl": 2.868170976638794,
+    "belief_kl_uncertain": 2.082460641860962,
+    "cell_acc_localized": 0.14366771280765533
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.8410131931304932,
+    "consistent_bacc": 0.6444242000579834,
+    "belief_kl": 2.80733323097229,
+    "belief_kl_uncertain": 2.0561861991882324,
+    "cell_acc_localized": 0.14921629428863525
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.8500338792800903,
+    "consistent_bacc": 0.6466509699821472,
+    "belief_kl": 2.755244731903076,
+    "belief_kl_uncertain": 2.0629565715789795,
+    "cell_acc_localized": 0.16040752828121185
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.8485534191131592,
+    "consistent_bacc": 0.6426135301589966,
+    "belief_kl": 2.746248722076416,
+    "belief_kl_uncertain": 2.0587916374206543,
+    "cell_acc_localized": 0.16072100400924683
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.8526173830032349,
+    "consistent_bacc": 0.6653038263320923,
+    "belief_kl": 2.732945680618286,
+    "belief_kl_uncertain": 2.037029981613159,
+    "cell_acc_localized": 0.16445140540599823
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.85240638256073,
+    "consistent_bacc": 0.6650219559669495,
+    "belief_kl": 2.751235008239746,
+    "belief_kl_uncertain": 2.034658432006836,
+    "cell_acc_localized": 0.1599373072385788
+   }
+  }
+ },
+ {
+  "step": 256,
+  "kl_known": 0.2767203450202942,
+  "kl_unknown": 0.265200674533844,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03422585129737854,
+    "consistent_bacc": 0.49999913573265076,
+    "belief_kl": 3.483633041381836,
+    "belief_kl_uncertain": 2.097405195236206,
+    "cell_acc_localized": 0.026050155982375145
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.621210515499115,
+    "consistent_bacc": 0.6723596453666687,
+    "belief_kl": 3.155360460281372,
+    "belief_kl_uncertain": 2.1092705726623535,
+    "cell_acc_localized": 0.11536049842834473
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.9060506820678711,
+    "consistent_bacc": 0.6733028888702393,
+    "belief_kl": 2.8392159938812256,
+    "belief_kl_uncertain": 1.9668785333633423,
+    "cell_acc_localized": 0.14285266399383545
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.9173630475997925,
+    "consistent_bacc": 0.6772654056549072,
+    "belief_kl": 2.5564839839935303,
+    "belief_kl_uncertain": 1.8620777130126953,
+    "cell_acc_localized": 0.22843259572982788
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.9147891998291016,
+    "consistent_bacc": 0.6810168027877808,
+    "belief_kl": 2.4967846870422363,
+    "belief_kl_uncertain": 1.8303321599960327,
+    "cell_acc_localized": 0.23811912536621094
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.9174070954322815,
+    "consistent_bacc": 0.681475043296814,
+    "belief_kl": 2.3641958236694336,
+    "belief_kl_uncertain": 1.7815134525299072,
+    "cell_acc_localized": 0.2800627052783966
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.9173998236656189,
+    "consistent_bacc": 0.6856083273887634,
+    "belief_kl": 2.3590941429138184,
+    "belief_kl_uncertain": 1.7593166828155518,
+    "cell_acc_localized": 0.2739811837673187
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.9122630953788757,
+    "consistent_bacc": 0.6999478936195374,
+    "belief_kl": 2.29760479927063,
+    "belief_kl_uncertain": 1.718074917793274,
+    "cell_acc_localized": 0.2878996729850769
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.9084610939025879,
+    "consistent_bacc": 0.7017518281936646,
+    "belief_kl": 2.3244662284851074,
+    "belief_kl_uncertain": 1.7279489040374756,
+    "cell_acc_localized": 0.2777116000652313
+   }
+  }
+ },
+ {
+  "step": 441,
+  "kl_known": 0.23316775262355804,
+  "kl_unknown": 0.23835578560829163,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03431883454322815,
+    "consistent_bacc": 0.4999934434890747,
+    "belief_kl": 3.477827787399292,
+    "belief_kl_uncertain": 2.090501070022583,
+    "cell_acc_localized": 0.027492163702845573
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.6574518084526062,
+    "consistent_bacc": 0.6615791916847229,
+    "belief_kl": 3.0148699283599854,
+    "belief_kl_uncertain": 2.176121711730957,
+    "cell_acc_localized": 0.1765517294406891
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.8974284529685974,
+    "consistent_bacc": 0.671143651008606,
+    "belief_kl": 2.5318186283111572,
+    "belief_kl_uncertain": 1.8819622993469238,
+    "cell_acc_localized": 0.24028213322162628
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.9368451237678528,
+    "consistent_bacc": 0.6847728490829468,
+    "belief_kl": 2.166555404663086,
+    "belief_kl_uncertain": 1.6854290962219238,
+    "cell_acc_localized": 0.3640438914299011
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.9327024221420288,
+    "consistent_bacc": 0.6857935786247253,
+    "belief_kl": 2.086592674255371,
+    "belief_kl_uncertain": 1.6286567449569702,
+    "cell_acc_localized": 0.37749215960502625
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.9325339198112488,
+    "consistent_bacc": 0.6887692213058472,
+    "belief_kl": 1.9038525819778442,
+    "belief_kl_uncertain": 1.5720006227493286,
+    "cell_acc_localized": 0.4329153597354889
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.9310420751571655,
+    "consistent_bacc": 0.6840865015983582,
+    "belief_kl": 1.8658690452575684,
+    "belief_kl_uncertain": 1.5610361099243164,
+    "cell_acc_localized": 0.437021940946579
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.926054835319519,
+    "consistent_bacc": 0.6893734931945801,
+    "belief_kl": 1.8184707164764404,
+    "belief_kl_uncertain": 1.5477582216262817,
+    "cell_acc_localized": 0.45078369975090027
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.9180227518081665,
+    "consistent_bacc": 0.6953935027122498,
+    "belief_kl": 1.85414457321167,
+    "belief_kl_uncertain": 1.585233449935913,
+    "cell_acc_localized": 0.43815046548843384
+   }
+  }
+ },
+ {
+  "step": 761,
+  "kl_known": 0.10327594727277756,
+  "kl_unknown": 0.18457123637199402,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03434589505195618,
+    "consistent_bacc": 0.499600887298584,
+    "belief_kl": 3.4699316024780273,
+    "belief_kl_uncertain": 2.082341432571411,
+    "cell_acc_localized": 0.028056425973773003
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.6709504127502441,
+    "consistent_bacc": 0.6699826717376709,
+    "belief_kl": 2.890050172805786,
+    "belief_kl_uncertain": 2.2420880794525146,
+    "cell_acc_localized": 0.224764883518219
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.9211031198501587,
+    "consistent_bacc": 0.6722285747528076,
+    "belief_kl": 2.3557608127593994,
+    "belief_kl_uncertain": 1.8500466346740723,
+    "cell_acc_localized": 0.30278995633125305
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.9562768936157227,
+    "consistent_bacc": 0.6890536546707153,
+    "belief_kl": 1.8418004512786865,
+    "belief_kl_uncertain": 1.6344671249389648,
+    "cell_acc_localized": 0.5041065812110901
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.9505553245544434,
+    "consistent_bacc": 0.6898436546325684,
+    "belief_kl": 1.68412184715271,
+    "belief_kl_uncertain": 1.5337659120559692,
+    "cell_acc_localized": 0.540783703327179
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.9428045749664307,
+    "consistent_bacc": 0.696977972984314,
+    "belief_kl": 1.437195897102356,
+    "belief_kl_uncertain": 1.4209537506103516,
+    "cell_acc_localized": 0.6047021746635437
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.9325048923492432,
+    "consistent_bacc": 0.6966677904129028,
+    "belief_kl": 1.3536689281463623,
+    "belief_kl_uncertain": 1.371157169342041,
+    "cell_acc_localized": 0.6157680153846741
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.9250119924545288,
+    "consistent_bacc": 0.6992269158363342,
+    "belief_kl": 1.282859206199646,
+    "belief_kl_uncertain": 1.315087080001831,
+    "cell_acc_localized": 0.6385893225669861
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.9118785858154297,
+    "consistent_bacc": 0.7040947675704956,
+    "belief_kl": 1.3176252841949463,
+    "belief_kl_uncertain": 1.3529468774795532,
+    "cell_acc_localized": 0.6284326314926147
+   }
+  }
+ },
+ {
+  "step": 1313,
+  "kl_known": 0.02341911941766739,
+  "kl_unknown": 0.15350203216075897,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.0343497097492218,
+    "consistent_bacc": 0.5806745886802673,
+    "belief_kl": 3.4626522064208984,
+    "belief_kl_uncertain": 2.073509454727173,
+    "cell_acc_localized": 0.027774294838309288
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.6748390793800354,
+    "consistent_bacc": 0.6726933717727661,
+    "belief_kl": 2.840881109237671,
+    "belief_kl_uncertain": 2.3174023628234863,
+    "cell_acc_localized": 0.23605015873908997
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.9440346360206604,
+    "consistent_bacc": 0.6854379177093506,
+    "belief_kl": 2.251573324203491,
+    "belief_kl_uncertain": 1.8237056732177734,
+    "cell_acc_localized": 0.34150469303131104
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.962018609046936,
+    "consistent_bacc": 0.7068127989768982,
+    "belief_kl": 1.645370364189148,
+    "belief_kl_uncertain": 1.555776834487915,
+    "cell_acc_localized": 0.5747022032737732
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.9473226070404053,
+    "consistent_bacc": 0.7082840800285339,
+    "belief_kl": 1.3686236143112183,
+    "belief_kl_uncertain": 1.378057837486267,
+    "cell_acc_localized": 0.6224138140678406
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.9414823055267334,
+    "consistent_bacc": 0.7114823460578918,
+    "belief_kl": 1.1135040521621704,
+    "belief_kl_uncertain": 1.2425724267959595,
+    "cell_acc_localized": 0.6936363577842712
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.911102294921875,
+    "consistent_bacc": 0.7138044834136963,
+    "belief_kl": 1.0066546201705933,
+    "belief_kl_uncertain": 1.1505929231643677,
+    "cell_acc_localized": 0.7164890170097351
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.9028644561767578,
+    "consistent_bacc": 0.7158516645431519,
+    "belief_kl": 0.96659255027771,
+    "belief_kl_uncertain": 1.118800163269043,
+    "cell_acc_localized": 0.7265203595161438
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.8802757263183594,
+    "consistent_bacc": 0.7185459136962891,
+    "belief_kl": 1.003201961517334,
+    "belief_kl_uncertain": 1.1641194820404053,
+    "cell_acc_localized": 0.721128523349762
+   }
+  }
+ },
+ {
+  "step": 2263,
+  "kl_known": 0.005867145489901304,
+  "kl_unknown": 0.09522125124931335,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03438013792037964,
+    "consistent_bacc": 0.5953783988952637,
+    "belief_kl": 3.4517548084259033,
+    "belief_kl_uncertain": 2.0628981590270996,
+    "cell_acc_localized": 0.028275862336158752
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.690812885761261,
+    "consistent_bacc": 0.6868669986724854,
+    "belief_kl": 2.785182237625122,
+    "belief_kl_uncertain": 2.2863638401031494,
+    "cell_acc_localized": 0.2404075264930725
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.9556609392166138,
+    "consistent_bacc": 0.7058097720146179,
+    "belief_kl": 2.17740535736084,
+    "belief_kl_uncertain": 1.754541039466858,
+    "cell_acc_localized": 0.3556426465511322
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.968980610370636,
+    "consistent_bacc": 0.7213090062141418,
+    "belief_kl": 1.4992750883102417,
+    "belief_kl_uncertain": 1.483540654182434,
+    "cell_acc_localized": 0.6145141124725342
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.9534029364585876,
+    "consistent_bacc": 0.7264890670776367,
+    "belief_kl": 1.1415611505508423,
+    "belief_kl_uncertain": 1.2346789836883545,
+    "cell_acc_localized": 0.6796238422393799
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.9404246807098389,
+    "consistent_bacc": 0.7312352061271667,
+    "belief_kl": 0.8224033713340759,
+    "belief_kl_uncertain": 1.0191659927368164,
+    "cell_acc_localized": 0.7734169363975525
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.9028007388114929,
+    "consistent_bacc": 0.7309215068817139,
+    "belief_kl": 0.6793472766876221,
+    "belief_kl_uncertain": 0.8955489993095398,
+    "cell_acc_localized": 0.813605010509491
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.8679168224334717,
+    "consistent_bacc": 0.7281494140625,
+    "belief_kl": 0.6244292259216309,
+    "belief_kl_uncertain": 0.8540382981300354,
+    "cell_acc_localized": 0.8309090733528137
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.8402143716812134,
+    "consistent_bacc": 0.7229721546173096,
+    "belief_kl": 0.6630153059959412,
+    "belief_kl_uncertain": 0.9114547967910767,
+    "cell_acc_localized": 0.8255799412727356
+   }
+  }
+ },
+ {
+  "step": 3902,
+  "kl_known": 0.0022279692348092794,
+  "kl_unknown": 0.055750101804733276,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03435629606246948,
+    "consistent_bacc": 0.6168950200080872,
+    "belief_kl": 3.4418444633483887,
+    "belief_kl_uncertain": 2.0540237426757812,
+    "cell_acc_localized": 0.02611285261809826
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.6978737115859985,
+    "consistent_bacc": 0.6879785060882568,
+    "belief_kl": 2.753655433654785,
+    "belief_kl_uncertain": 2.2537829875946045,
+    "cell_acc_localized": 0.24601881206035614
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.9617490768432617,
+    "consistent_bacc": 0.710110604763031,
+    "belief_kl": 2.1391165256500244,
+    "belief_kl_uncertain": 1.7147424221038818,
+    "cell_acc_localized": 0.35115987062454224
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.9721931219100952,
+    "consistent_bacc": 0.7314019799232483,
+    "belief_kl": 1.4158918857574463,
+    "belief_kl_uncertain": 1.4194248914718628,
+    "cell_acc_localized": 0.6297805905342102
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.9575896263122559,
+    "consistent_bacc": 0.7358670234680176,
+    "belief_kl": 1.0024422407150269,
+    "belief_kl_uncertain": 1.0953978300094604,
+    "cell_acc_localized": 0.7146081328392029
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.9386519193649292,
+    "consistent_bacc": 0.7370176911354065,
+    "belief_kl": 0.6180917620658875,
+    "belief_kl_uncertain": 0.8308247923851013,
+    "cell_acc_localized": 0.8350470066070557
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.8999036550521851,
+    "consistent_bacc": 0.7332615852355957,
+    "belief_kl": 0.44256696105003357,
+    "belief_kl_uncertain": 0.688033938407898,
+    "cell_acc_localized": 0.8838558197021484
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.8473052978515625,
+    "consistent_bacc": 0.7309532165527344,
+    "belief_kl": 0.3770389258861542,
+    "belief_kl_uncertain": 0.6481101512908936,
+    "cell_acc_localized": 0.9088087677955627
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.8154020309448242,
+    "consistent_bacc": 0.7216472625732422,
+    "belief_kl": 0.430252343416214,
+    "belief_kl_uncertain": 0.7590115666389465,
+    "cell_acc_localized": 0.903667688369751
+   }
+  }
+ },
+ {
+  "step": 6728,
+  "kl_known": 0.0018026414327323437,
+  "kl_unknown": 0.02996893785893917,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03441864252090454,
+    "consistent_bacc": 0.6133282780647278,
+    "belief_kl": 3.4360768795013428,
+    "belief_kl_uncertain": 2.049368381500244,
+    "cell_acc_localized": 0.027115987613797188
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.6970421075820923,
+    "consistent_bacc": 0.6930508017539978,
+    "belief_kl": 2.7150368690490723,
+    "belief_kl_uncertain": 2.2100532054901123,
+    "cell_acc_localized": 0.2497178614139557
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.96442711353302,
+    "consistent_bacc": 0.7152089476585388,
+    "belief_kl": 2.114366292953491,
+    "belief_kl_uncertain": 1.6772605180740356,
+    "cell_acc_localized": 0.3533228933811188
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.9711157083511353,
+    "consistent_bacc": 0.737436830997467,
+    "belief_kl": 1.3809047937393188,
+    "belief_kl_uncertain": 1.387170433998108,
+    "cell_acc_localized": 0.6382445096969604
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.9613091945648193,
+    "consistent_bacc": 0.7410562634468079,
+    "belief_kl": 0.9077261686325073,
+    "belief_kl_uncertain": 0.980178713798523,
+    "cell_acc_localized": 0.7369905710220337
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.9395542144775391,
+    "consistent_bacc": 0.7438382506370544,
+    "belief_kl": 0.4896171987056732,
+    "belief_kl_uncertain": 0.6734278202056885,
+    "cell_acc_localized": 0.8724138140678406
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.8916096687316895,
+    "consistent_bacc": 0.740917444229126,
+    "belief_kl": 0.30472105741500854,
+    "belief_kl_uncertain": 0.5310091376304626,
+    "cell_acc_localized": 0.9248275756835938
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.8222129940986633,
+    "consistent_bacc": 0.739315927028656,
+    "belief_kl": 0.23232446610927582,
+    "belief_kl_uncertain": 0.4829089641571045,
+    "cell_acc_localized": 0.9532601833343506
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.7722499370574951,
+    "consistent_bacc": 0.7245373725891113,
+    "belief_kl": 0.28954631090164185,
+    "belief_kl_uncertain": 0.615163266658783,
+    "cell_acc_localized": 0.9458307027816772
+   }
+  }
+ },
+ {
+  "step": 11600,
+  "kl_known": 0.0005644712946377695,
+  "kl_unknown": 0.015512969344854355,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03443780541419983,
+    "consistent_bacc": 0.6110352873802185,
+    "belief_kl": 3.4361650943756104,
+    "belief_kl_uncertain": 2.049022674560547,
+    "cell_acc_localized": 0.02830721065402031
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.6862609386444092,
+    "consistent_bacc": 0.6919537782669067,
+    "belief_kl": 2.6933724880218506,
+    "belief_kl_uncertain": 2.185354232788086,
+    "cell_acc_localized": 0.2566457688808441
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.9663984179496765,
+    "consistent_bacc": 0.7132912278175354,
+    "belief_kl": 2.0888254642486572,
+    "belief_kl_uncertain": 1.6322404146194458,
+    "cell_acc_localized": 0.36203762888908386
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.9713592529296875,
+    "consistent_bacc": 0.7377305626869202,
+    "belief_kl": 1.3467786312103271,
+    "belief_kl_uncertain": 1.327641487121582,
+    "cell_acc_localized": 0.6442633271217346
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.9611648917198181,
+    "consistent_bacc": 0.7411521673202515,
+    "belief_kl": 0.8451451063156128,
+    "belief_kl_uncertain": 0.8983604907989502,
+    "cell_acc_localized": 0.7575548887252808
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.9343326091766357,
+    "consistent_bacc": 0.7461007833480835,
+    "belief_kl": 0.41400769352912903,
+    "belief_kl_uncertain": 0.5978562831878662,
+    "cell_acc_localized": 0.9004701972007751
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.8763248324394226,
+    "consistent_bacc": 0.743112325668335,
+    "belief_kl": 0.22771453857421875,
+    "belief_kl_uncertain": 0.44728296995162964,
+    "cell_acc_localized": 0.951191246509552
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.7385475635528564,
+    "consistent_bacc": 0.7411669492721558,
+    "belief_kl": 0.15744811296463013,
+    "belief_kl_uncertain": 0.38778817653656006,
+    "cell_acc_localized": 0.9753291606903076
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.6583914756774902,
+    "consistent_bacc": 0.7187659740447998,
+    "belief_kl": 0.2340293526649475,
+    "belief_kl_uncertain": 0.5703525543212891,
+    "cell_acc_localized": 0.9680250883102417
+   }
+  }
+ },
+ {
+  "step": 20000,
+  "kl_known": 0.00012040004367008805,
+  "kl_unknown": 0.006248120218515396,
+  "probes": {
+   "resid_0": {
+    "label": "embed",
+    "disp_r2": 0.03444170951843262,
+    "consistent_bacc": 0.6062591671943665,
+    "belief_kl": 3.4368813037872314,
+    "belief_kl_uncertain": 2.0494773387908936,
+    "cell_acc_localized": 0.027272727340459824
+   },
+   "L0.resid_mid": {
+    "label": "L0 attn",
+    "disp_r2": 0.6824530363082886,
+    "consistent_bacc": 0.6884458661079407,
+    "belief_kl": 2.698030948638916,
+    "belief_kl_uncertain": 2.160529375076294,
+    "cell_acc_localized": 0.2598746120929718
+   },
+   "resid_1": {
+    "label": "L0 mlp",
+    "disp_r2": 0.9679367542266846,
+    "consistent_bacc": 0.7111679315567017,
+    "belief_kl": 2.0886054039001465,
+    "belief_kl_uncertain": 1.6170676946640015,
+    "cell_acc_localized": 0.37206897139549255
+   },
+   "L1.resid_mid": {
+    "label": "L1 attn",
+    "disp_r2": 0.9719170331954956,
+    "consistent_bacc": 0.7336750626564026,
+    "belief_kl": 1.3592932224273682,
+    "belief_kl_uncertain": 1.3033332824707031,
+    "cell_acc_localized": 0.6455172300338745
+   },
+   "resid_2": {
+    "label": "L1 mlp",
+    "disp_r2": 0.9621762633323669,
+    "consistent_bacc": 0.7377578616142273,
+    "belief_kl": 0.8325748443603516,
+    "belief_kl_uncertain": 0.8570258617401123,
+    "cell_acc_localized": 0.7629153728485107
+   },
+   "L2.resid_mid": {
+    "label": "L2 attn",
+    "disp_r2": 0.934323787689209,
+    "consistent_bacc": 0.7426237463951111,
+    "belief_kl": 0.39091044664382935,
+    "belief_kl_uncertain": 0.5408992767333984,
+    "cell_acc_localized": 0.9092162847518921
+   },
+   "resid_3": {
+    "label": "L2 mlp",
+    "disp_r2": 0.8762321472167969,
+    "consistent_bacc": 0.7386270761489868,
+    "belief_kl": 0.19563424587249756,
+    "belief_kl_uncertain": 0.3886208236217499,
+    "cell_acc_localized": 0.9610971808433533
+   },
+   "L3.resid_mid": {
+    "label": "L3 attn",
+    "disp_r2": 0.6827690601348877,
+    "consistent_bacc": 0.7384573817253113,
+    "belief_kl": 0.12891462445259094,
+    "belief_kl_uncertain": 0.3367786705493927,
+    "cell_acc_localized": 0.9836363792419434
+   },
+   "resid_4": {
+    "label": "L3 mlp",
+    "disp_r2": 0.5703641176223755,
+    "consistent_bacc": 0.7154439091682434,
+    "belief_kl": 0.20903922617435455,
+    "belief_kl_uncertain": 0.5333825945854187,
+    "cell_acc_localized": 0.9779623746871948
+   }
+  }
+ }
+]

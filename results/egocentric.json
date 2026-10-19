@@ -1,0 +1,96 @@
+{
+ "trained": {
+  "resid_0": {
+   "label": "embed",
+   "visited_bacc": 0.5974783897399902,
+   "edges_bacc": 0.5586645603179932
+  },
+  "L0.resid_mid": {
+   "label": "L0 attn",
+   "visited_bacc": 0.6792290210723877,
+   "edges_bacc": 0.5968546271324158
+  },
+  "resid_1": {
+   "label": "L0 mlp",
+   "visited_bacc": 0.7578104734420776,
+   "edges_bacc": 0.6331032514572144
+  },
+  "L1.resid_mid": {
+   "label": "L1 attn",
+   "visited_bacc": 0.818857729434967,
+   "edges_bacc": 0.7068482041358948
+  },
+  "resid_2": {
+   "label": "L1 mlp",
+   "visited_bacc": 0.8814831376075745,
+   "edges_bacc": 0.7883806824684143
+  },
+  "L2.resid_mid": {
+   "label": "L2 attn",
+   "visited_bacc": 0.8913170695304871,
+   "edges_bacc": 0.8224387168884277
+  },
+  "resid_3": {
+   "label": "L2 mlp",
+   "visited_bacc": 0.8911950588226318,
+   "edges_bacc": 0.8407184481620789
+  },
+  "L3.resid_mid": {
+   "label": "L3 attn",
+   "visited_bacc": 0.8598037958145142,
+   "edges_bacc": 0.8175053596496582
+  },
+  "resid_4": {
+   "label": "L3 mlp",
+   "visited_bacc": 0.8300117254257202,
+   "edges_bacc": 0.787106990814209
+  }
+ },
+ "random": {
+  "resid_0": {
+   "label": "embed",
+   "visited_bacc": 0.5780979990959167,
+   "edges_bacc": 0.5523294806480408
+  },
+  "L0.resid_mid": {
+   "label": "L0 attn",
+   "visited_bacc": 0.5979405641555786,
+   "edges_bacc": 0.5572870969772339
+  },
+  "resid_1": {
+   "label": "L0 mlp",
+   "visited_bacc": 0.6048733592033386,
+   "edges_bacc": 0.5613703727722168
+  },
+  "L1.resid_mid": {
+   "label": "L1 attn",
+   "visited_bacc": 0.6099532842636108,
+   "edges_bacc": 0.5623891353607178
+  },
+  "resid_2": {
+   "label": "L1 mlp",
+   "visited_bacc": 0.6121102571487427,
+   "edges_bacc": 0.5638948678970337
+  },
+  "L2.resid_mid": {
+   "label": "L2 attn",
+   "visited_bacc": 0.6135531663894653,
+   "edges_bacc": 0.5640817880630493
+  },
+  "resid_3": {
+   "label": "L2 mlp",
+   "visited_bacc": 0.613457441329956,
+   "edges_bacc": 0.5648931264877319
+  },
+  "L3.resid_mid": {
+   "label": "L3 attn",
+   "visited_bacc": 0.6143759489059448,
+   "edges_bacc": 0.5647489428520203
+  },
+  "resid_4": {
+   "label": "L3 mlp",
+   "visited_bacc": 0.6155421733856201,
+   "edges_bacc": 0.5652365684509277
+  }
+ }
+}
