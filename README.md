@@ -2,6 +2,8 @@
 
 **A transformer that has only ever read `N E S W` builds a map of a maze it has never seen, tracks a Bayesian belief over where it is, and lets you redraw the whole maze from its activations.**
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PS12007/latent-cartographer/blob/main/notebooks/walkthrough.ipynb) [![tests](https://github.com/PS12007/latent-cartographer/actions/workflows/tests.yml/badge.svg)](https://github.com/PS12007/latent-cartographer/actions/workflows/tests.yml)
+
 **[▶ Live demo](https://ps12007.github.io/latent-cartographer/)**: the model runs in your browser (plain JavaScript, no server). Walk the maze, watch its internal belief collapse onto your position, click a cell to *steer* what it believes, or press **Extract the map** to rebuild the maze from the network alone.
 
 ![Belief over a walk: exact Bayes vs decoded from the model](figures/beliefs.png)
@@ -94,6 +96,9 @@ With width and training budget fixed, one block already does dead reckoning from
 Across training, displacement becomes decodable almost at once. The maze-frame position emerges over thousands of steps afterwards, and the loss on unknown-start walks keeps improving long after known-start walks are nearly solved.
 
 ## Reproduce
+
+The quickest route is the [walkthrough notebook](notebooks/walkthrough.ipynb): about 15 s on a CPU, it reproduces the Bayes match, the belief probe, steering and map extraction.
+
 
 ```bash
 pip install -r requirements.txt           # torch, numpy, matplotlib, pytest
