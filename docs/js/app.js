@@ -10,7 +10,7 @@ const C = {
 let J, model, world, L, MAXT;
 const WORLDS = {
   model: "A fixed 8×8 maze. One time in three the walk starts at a known cell; otherwise the model must work out where it is.",
-  model_big12: "A 12×12 maze (144 cells) with the same 0.8M-parameter model. Localising takes longer; offline extraction recovers 261 of 264 walls.",
+  model_big12: "A 12×12 maze (144 cells) with the same 0.8M-parameter model. Localising takes longer; offline extraction recovers 261 of 264 edges between cells.",
   model_slip15: "Slippery: 15% of moves silently fail (the red dot sometimes stays put). Even from a known start the belief spreads out, and the model has to keep it graded.",
 };
 const cache = {};
@@ -358,7 +358,7 @@ async function extract() {
     if ((d === 1 && q + 1 < world.W) || (d === 2 && r + 1 < world.H)) { tot++; ok += rec[c][d] === world.open[c][d]; }
   }
   drawMaze($("#extModel"), null, null, { open: rec });
-  $("#extractScore").textContent = `${ok} / ${tot} interior walls recovered correctly`;
+  $("#extractScore").textContent = `${ok} / ${tot} interior edges (passages and walls) recovered correctly`;
   $("#extractBtn").disabled = false;
   extracting = false;
 }

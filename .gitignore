@@ -5,3 +5,4 @@ runs/*/snapshots/
 runs/smoke/
 runs/*.log
 .venv/
+runs/routes/

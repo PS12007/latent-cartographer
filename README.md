@@ -31,17 +31,18 @@ The model is never told the maze, the coordinates, or that walls exist. To predi
 | Linear readout of the current cell (once localised) | **98.7%** (random-init network: 6%) |
 | Linear readout of the full 64-way belief | KL **0.10** nats to the exact posterior, vs 1.64 from the model's own output distribution |
 | Steering the decoded belief to another cell | model's predicted legal moves become the new cell's **90%** of the time (random edit of same size: 3.5%) |
-| Maze recovered from the model by steering alone | **112 / 112 interior walls correct** |
+| Maze recovered from the model by steering alone | **112 / 112 interior edges correct** (all 80 passages, all 32 walls) |
 | Writing one remembered passage into the local map | belief shifts toward whichever candidate cell has that passage (+0.22 / −0.18 vs control) |
-| Replicates on 3 more mazes + a 12×12 maze | all walls recovered on every 8×8 maze; 261/264 on 12×12 |
+| Replicates on 3 more mazes + a 12×12 maze | every interior edge recovered on every 8×8 maze; 261/264 on 12×12 |
 | Place cells in the last MLP layer | 127 of 512 neurons; while uncertain they track P(cell), not the single most likely cell |
 | Place cells template-match the local sketch (causal) | own cell is the best of 64 templates for 58% of neurons (chance 1.6%) |
 | One network, four mazes | place cells remap (field corr. 0.13 across mazes); swapping the maze token switches the map (85%–89%) |
 | Heads that attend by place | B2H1 / B3H1 attend 15× / 35× more to past moments spent nearby than to equally old ones far away |
 | Open 16×16 arena | no grid cells; 306 coordinate-ramp neurons in block 1 give way to 269 border cells by block 3 |
+| What breaks the map? | not goal-directed routes (map intact) but sparse coverage: trained on two-depot traffic, the model is perfect on its own data yet puts **39%** on walls off-route; 10% random walks in the mix restore the map |
 | Does a steered belief persist to the next step? | **No** (14% vs 14% unsteered): location is recomputed from the history at every token |
 
-**Contents:** [1. Belief in the residual stream](#1-the-model-is-nearly-bayes-optimal-and-the-belief-is-in-the-residual-stream) · [2. Causal steering & map extraction](#2-the-map-is-causal-and-you-can-read-the-whole-maze-out-of-it) · [3. Mechanism](#3-how-it-localises-an-egocentric-map-matched-against-an-allocentric-one) · [4. Geometry, place cells, template matching](#4-the-shape-of-the-map) · [5. Depth & dynamics](#5-depth-and-training-dynamics) · [6. Robustness & slippery maze](#6-robustness) · [7. Four mazes: remapping](#7-four-mazes-in-one-network-remapping-and-switching-maps) · [8. Open arena: border cells](#8-an-open-arena-no-grid-cells-but-border-cells) · [Reproduce](#reproduce) · [Limitations](#limitations-and-next-steps)
+**Contents:** [1. Belief in the residual stream](#1-the-model-is-nearly-bayes-optimal-and-the-belief-is-in-the-residual-stream) · [2. Causal steering & map extraction](#2-the-map-is-causal-and-you-can-read-the-whole-maze-out-of-it) · [3. Mechanism](#3-how-it-localises-an-egocentric-map-matched-against-an-allocentric-one) · [4. Geometry, place cells, template matching](#4-the-shape-of-the-map) · [5. Depth & dynamics](#5-depth-and-training-dynamics) · [6. Robustness & slippery maze](#6-robustness) · [7. Four mazes: remapping](#7-four-mazes-in-one-network-remapping-and-switching-maps) · [8. Open arena: border cells](#8-an-open-arena-no-grid-cells-but-border-cells) · [9. What breaks the map](#9-what-breaks-the-map-coverage-not-purpose) · [Reproduce](#reproduce) · [Limitations](#limitations-and-next-steps)
 
 ## 1. The model is (nearly) Bayes-optimal, and the belief is in the residual stream
 
@@ -64,7 +65,7 @@ Decodability is not use. To test use, [`experiments/intervene.py`](experiments/i
 * **The location only settles at the newest token late in the network.** Pasting in the *entire* residual vector from another walk works 10% of the time at the embedding, 34% after block 2, 74% after block 3, and 100% after block 4. Before block 3, later layers simply re-read the location from the history and overwrite the edit.
 * **A negative result worth keeping.** The minimum-norm edit `W⁺(z′ − z)` that exactly swaps two of the probe's outputs *fails* (≤6%). It also pins the other 62 outputs, which drags the edit off the directions the network uses. "The probe reads X" and "this edit makes the probe read X" are different claims.
 
-Steering to each of the 64 cells in turn and recording which moves the model then allows recovers the maze **perfectly**: every one of the 112 interior walls. The environment is never consulted.
+Steering to each of the 64 cells in turn and recording which moves the model then allows recovers the maze **perfectly**: all 112 interior edges between neighbouring cells are classified correctly (80 passages, 32 walls; an edge counts as open when the average of its two sides gets > 10%). The environment is never consulted.
 
 <p align="center"><img src="figures/map.png" width="640" alt="Maze recovered from the model"></p>
 
@@ -141,7 +142,7 @@ Across training, displacement becomes decodable almost at once. The maze-frame p
 
 **Other mazes, and a bigger one.** The whole pipeline was re-run from scratch (new maze *and* new initialisation) on three more 8×8 mazes, and on a 12×12 maze (144 cells, 96-move walks) with the *same* 0.8M-parameter model ([`experiments/sweep_mazes.sh`](experiments/sweep_mazes.sh), table from [`experiments/summarize.py`](experiments/summarize.py)):
 
-| maze | KL to optimal (given / unknown start) | best probe cell acc. | steering after block 3 (random) | walls recovered | persistence (steered / not) |
+| maze | KL to optimal (given / unknown start) | best probe cell acc. | steering after block 3 (random) | interior edges correct | persistence (steered / not) |
 |---|---|---|---|---|---|
 | 8×8, seed 0 | 0.0001 / 0.0062 | 98.7% | 90% (4%) | 112/112 | 14% / 14% |
 | 8×8, seed 1 | 0.0001 / 0.0054 | 98.4% | 84% (3%) | 112/112 | 14% / 14% |
@@ -196,6 +197,38 @@ Recurrent networks trained on path integration in open arenas famously grow grid
 
 Early layers code position as straight coordinate ramps, which is what summing displacement vectors produces. Later layers recode it as *border cells*: in an open arena a wall is the only thing that changes which moves are legal. Border cells are a real cell type in rodent entorhinal cortex (Solstad et al. 2008). The same coordinates-to-affordances shift appears in the maze (section 4). Grid codes are usually explained as an efficient way to integrate paths *recurrently*; a transformer, which can sum the whole history in one attention step, does not need them.
 
+## 9. What breaks the map: coverage, not purpose
+
+[Vafa et al. 2024](https://arxiv.org/abs/2406.03689) found that transformers trained on real taxi routes predict the next turn well yet hold an incoherent map of the city. Uniform random walks are friendly data, so the obvious suspect is the data. [`experiments/routes.py`](experiments/routes.py) trains the same model four times on the main maze, start always given, 20k steps each, changing only how the walker moves:
+
+* **walks**: uniform random walks (control).
+* **routes**: shortest paths to a hidden random goal; on arrival, a new goal. Purposeful, like taxi trips.
+* **depots**: the same, but every goal is one of two fixed depots in opposite corners. Hub-and-spoke traffic: 32 of the maze's 160 legal moves never appear in training and 90 are rare (under 10% of their random-walk frequency).
+* **depots + 10%**: depot traffic with one sequence in ten replaced by a random walk.
+
+Every model is then judged by the same policy-free tests:
+
+* how much probability it puts on walls;
+* how well a linear probe reads the current cell (best block);
+* how far a probe-direction edit moves it to another cell (best block);
+* how much of the maze steering recovers, scored as in section 2.
+
+![Routes vs walks vs depots](figures/routes.png)
+
+| trained on | own data: mass on walls / cell probe | random walks: mass on walls / cell probe | steering: mass on target's walls (before → after) | map from steering |
+|---|---|---|---|---|
+| walks | 0.00% / 100% | 0.00% / 100% | 37% → 3.3% | **112 / 112** edges |
+| routes | 0.00% / 100% | 0.18% / 100% | 37% → 5.9% | 108 / 112 (AUC 0.99) |
+| depots | 0.00% / 99% | **39% / 11%** | 37% → 23% | 85 / 112 (AUC 0.78) |
+| depots + 10% walks | 0.00% / 100% | 0.00% / 100% | 36% → 4.8% | 111 / 112 (AUC 0.96) |
+
+* **Purposeful routes are not the problem.** The routes model never saw a random walk, yet on random walks it puts 0.2% on walls, reads out its location linearly, and gives up the map when steered.
+* **Sparse coverage reproduces the Vafa failure.** The depots model is perfect on its own data: no mass on walls, location linearly decodable 99% of the time. On random walks from a *known* start it puts 39% on walls and its location is mostly not decodable (11% at best). Steering moves it only part of the way, and the extracted map is wrong away from the depot corridors.
+* **It fails at the first unfamiliar move, and never recovers.** On random walks, the depots model puts 12% on walls before the walk first takes a move that was rare in its training data. Just after that move it puts 38%, and it stays at 31–34% for the next twelve moves, even though every later move is ordinary. It learned the routes, not a path integrator.
+* **A little coverage is enough.** Replacing 10% of the depot traffic with random walks restores everything: no mass on walls off-route, location readable, map 111/112. Twenty-two moves are still rare in that mix, but none is unseen.
+
+So the map depends on the data's coverage. Neither the next-token objective nor purposeful walking breaks it. A model shown every move from every place, even occasionally, builds a world model. A model shown only a few busy corridors builds a route memory that looks just as good on its own test set.
+
 ## Reproduce
 
 The quickest route is the [walkthrough notebook](notebooks/walkthrough.ipynb): about 15 s on a CPU, it reproduces the Bayes match, the belief probe, steering and map extraction.
@@ -216,6 +249,7 @@ python experiments/template_matching.py    # do place cells template-match the l
 python experiments/multimaze.py            # four mazes in one network: remapping, map switching
 python experiments/multimaze.py --n_mazes 16 --steps 40000 --out runs/multi16 --results results/multimaze16.json
 python experiments/spatial_attention.py    # heads that attend by location
+python experiments/routes.py               # walks vs goal-directed routes vs two-depot traffic (trains 4 models, ~35 min; these models are not in the repo)
 python -m cartographer.train --out runs/arena16 --H 16 --W 16 --braid 1.0 --T 128 --p_known 1.0 && python experiments/grid_cells.py
 python -m cartographer.train --out runs/slip15 --slip 0.15 --p_known 0.5 && python experiments/slippery.py
 bash   experiments/sweep_mazes.sh          # 3 more mazes (+ README table: python experiments/summarize.py)
@@ -237,7 +271,7 @@ docs/           the browser demo (GitHub Pages): model.js is a line-for-line JS 
 
 * **One architecture, small worlds.** Results replicate across 4 mazes and a 12×12 maze, but always with a 4-block, d=128 model. Depth, training dynamics and the mechanistic analyses (sections 3–5) were run on the main maze only.
 * **The circuit is only partly reverse-engineered.** The stages are established with probes and edits on the residual stream, head ablations name the integrator and the localisation heads, and place neurons are causally shown to template-match the local sketch. But the causal template effect (r = 0.30) explains only part of their tuning, and the block-3 computation feeding them is untraced.
-* **Uniform random walks are friendly data.** [Vafa et al. 2024](https://arxiv.org/abs/2406.03689) show that transformers trained on real taxi routes predict well *without* forming a coherent map. Here the map survives biased walking policies (section 6), so the open question is what breaks it: partial observability, noisy moves, worlds too large for the model's capacity, or real trajectories.
+* **What breaks the map was tested in one way.** Section 9 shows that sparse coverage, not goal-directedness, breaks it, in a small maze with a known start. Partial observability, worlds too large for the model's capacity, and real trajectories remain open. Where between 0% and 10% random walks the map appears has not been measured.
 * **Steering uses class means computed with ground-truth labels** to set the edit size. The direction comes from the probe; the scale does not.
 
 ## Related work

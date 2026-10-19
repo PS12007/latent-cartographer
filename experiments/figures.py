@@ -197,7 +197,7 @@ def fig_steering():
     draw_maze(axs[0], maze)
     draw_maze(axs[1], maze, open_=op)
     axs[0].set_title("ground truth", loc="center", color=SOFT)
-    axs[1].set_title(f"read out of the model: {R['map']['interior_correct']}/{R['map']['interior_total']} walls correct",
+    axs[1].set_title(f"read out of the model: {R['map']['interior_correct']}/{R['map']['interior_total']} edges correct",
                      loc="center", color=MODEL)
     fig.tight_layout()
     fig.savefig(f"{FIG}/map.png", dpi=160)
@@ -421,7 +421,7 @@ def fig_map_big():
         x, y = (q + 1, r + 0.5) if d == 1 else (q + 0.5, r + 1)
         axs[1].add_patch(plt.Circle((x, y), 0.45, fill=False, ec=MODEL, lw=2))
     axs[0].set_title("ground truth (12×12)", loc="center", color=SOFT)
-    axs[1].set_title(f"read out of the model: {R['map']['interior_correct']}/{R['map']['interior_total']} walls correct (misses circled)",
+    axs[1].set_title(f"read out of the model: {R['map']['interior_correct']}/{R['map']['interior_total']} edges correct (misses circled)",
                      loc="center", color=MODEL, fontsize=10.5)
     fig.tight_layout()
     fig.savefig(f"{FIG}/map_big12.png", dpi=160)
@@ -744,8 +744,71 @@ def fig_arena():
     plt.close(fig)
 
 
+# ------------------------------------------------------------------ Fig: routes vs walks vs depots
+def fig_routes():
+    R = load("results/routes.json")
+    from cartographer.env import make_maze
+    maze = make_maze(8, 8, 0.35, 0)
+    pols = [("walks", "random walks"), ("routes", "shortest routes, random goals"), ("depots", "shortest routes, 2 depots"),
+            ("mixed", "2 depots + 10% random walks")]
+    fig = plt.figure(figsize=(16.4, 4.6))
+    gs = fig.add_gridspec(1, 5, width_ratios=[1, 1, 1, 1, 1.3], wspace=0.28)
+    for j, (pol, name) in enumerate(pols):
+        ax = fig.add_subplot(gs[0, j])
+        P = np.array(R[pol]["map"]["P"])
+        traffic = np.array(R[pol]["coverage"]["counts"]).sum(1)
+        op = np.zeros_like(maze.open)
+        miss = []
+        for c in range(maze.N):
+            r, q = divmod(c, maze.W)
+            for d, (dr, dq) in enumerate([(-1, 0), (0, 1), (1, 0), (0, -1)]):
+                rr, qq = r + dr, q + dq
+                if 0 <= rr < maze.H and 0 <= qq < maze.W:
+                    nb = rr * maze.W + qq
+                    op[c, d] = 0.5 * (P[c, d] + P[nb, (d + 2) % 4]) > 0.1
+                    if d in (1, 2) and op[c, d] != maze.open[c, d]:
+                        miss.append((q + 0.5 + 0.5 * dq, r + 0.5 + 0.5 * dr))
+        v = np.log1p(traffic) / np.log1p(traffic).max()
+        rgba = np.zeros((maze.H, maze.W, 4))
+        rgba[..., :3] = matplotlib.colors.to_rgb(REF)
+        rgba[..., 3] = 0.04 + 0.4 * v.reshape(maze.H, maze.W)               # wash = training traffic (log scale)
+        ax.imshow(rgba, extent=(0, maze.W, maze.H, 0), interpolation="nearest")
+        draw_maze(ax, maze, open_=op)
+        for x, y in miss:
+            ax.add_patch(plt.Circle((x, y), 0.32, fill=False, color=MODEL, lw=2))
+        if pol in ("depots", "mixed"):
+            for c in R["depots"]["depot_cells"]:
+                r, q = divmod(c, maze.W)
+                ax.plot(q + 0.5, r + 0.5, marker="s", ms=9, color=INK)
+        m = R[pol]["map"]
+        cov = R[pol]["coverage"]
+        ax.set_title(f"{name}\n{m['edges_correct']}/{m['n_edges']} edges · {cov['never_seen']}/{cov['n_legal_moves']} moves unseen",
+                     loc="center", fontsize=10, color=SOFT)
+    fig.text(0.4, 0.12, "maze = map read out of each model by steering (misses circled) · blue wash = how often the cell is visited in training · squares = depots",
+             ha="center", fontsize=9, color=SOFT)
+    ax = fig.add_subplot(gs[0, 4])
+    x = np.arange(len(pols))
+    det = [R[p]["illegal"]["walks"]["mass"] * 100 for p, _ in pols]
+    bestl = [min(R[p]["steer"], key=lambda l: R[p]["steer"][l]["probe_dir"]["mass_on_target_walls"]) for p, _ in pols]
+    st = [R[p]["steer"][l]["probe_dir"]["mass_on_target_walls"] * 100 for (p, _), l in zip(pols, bestl)]
+    base = [R[p]["steer"][l]["none"]["mass_on_target_walls"] * 100 for (p, _), l in zip(pols, bestl)]
+    ax.bar(x - 0.2, det, 0.36, color=MODEL, label="on random walks (detours)")
+    ax.bar(x + 0.2, st, 0.36, color=STEER, label="after steering to c′ (target's walls, best block)")
+    ax.scatter(x + 0.2, base, marker="_", s=260, color=CTRL, lw=2, label="before steering", zorder=3)
+    for xi, a, b in zip(x, det, st):
+        ax.text(xi - 0.2, a + 0.6, f"{a:.1f}", ha="center", fontsize=9, color=INK)
+        ax.text(xi + 0.2, b + 0.6, f"{b:.1f}", ha="center", fontsize=9, color=INK)
+    ax.set_xticks(x, ["walks", "routes", "depots", "depots\n+10%"])
+    ax.set_ylabel("% probability on walls")
+    ax.set_title("does it know the walls?", fontsize=11)
+    ax.legend(fontsize=8.5, loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=1)
+    ax.set_ylim(0, 45)
+    fig.savefig(f"{FIG}/routes.png", dpi=160, bbox_inches="tight")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template", "multimaze", "spatial_attention", "capacity", "arena"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template", "multimaze", "spatial_attention", "capacity", "arena", "routes"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())

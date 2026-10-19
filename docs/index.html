@@ -164,7 +164,7 @@
   <div class="find">
     <div><h3>2 · It is causal, and the maze can be read back out</h3>
       <p>Pushing the newest token’s activations along the probe direction for another cell makes the model expect that cell’s
-        walls 90% of the time (random pushes: 4%). Doing this for every cell recovers all 112 interior walls. The edit does
+        walls 90% of the time (random pushes: 4%). Doing this for every cell classifies all 112 edges between neighbouring cells (every passage, every wall) correctly. The edit does
         <em>not</em> persist to the next token: location is rebuilt from the history every step.</p></div>
     <img src="figs/steering.png" alt="Steering results">
   </div>
@@ -214,10 +214,18 @@
   </div>
   <div class="find">
     <div><h3>9 · It replicates</h3>
-      <p>Retrained from scratch on three more 8×8 mazes: every wall recovered each time, steering works 82–90%, and edits never
-        persist. On a 12×12 maze with the same small model, 261 of 264 walls come back. The map also survives walking styles
+      <p>Retrained from scratch on three more 8×8 mazes: every passage and wall recovered each time, steering works 82–90%, and edits never
+        persist. On a 12×12 maze with the same small model, 261 of 264 edges come back. The map also survives walking styles
         never seen in training (98.7% legal-move accuracy when lost).</p></div>
     <img class="narrow" src="figs/map_big12.png" alt="12x12 maze extracted from the model">
+  </div>
+  <div class="find">
+    <div><h3>10 · What breaks the map: coverage</h3>
+      <p>Trained on purposeful shortest-path routes instead of random walks, the model still builds the map. Trained on
+        hub-and-spoke traffic between two depots, where a fifth of the possible moves never occur, it is perfect on its own data, but on
+        any other walk it puts 39% of its probability on walls. It fails at the first unfamiliar move and never re-localises,
+        because it memorised routes instead of learning a map. Mixing in 10% random walks restores the map (111 of 112 edges).</p></div>
+    <img src="figs/routes.png" alt="Maps read out of models trained on walks, routes and depot traffic">
   </div>
 </section>
 

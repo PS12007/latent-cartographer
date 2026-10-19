@@ -48,7 +48,7 @@ Bayes-optimal next-move distribution and the exact posterior over the walker's c
 for both behaviour and internal state. The model comes within 0.006 nats of the optimal loss. Its residual stream contains a
 linearly decodable belief over all 64 cells (KL 0.10 nats to the exact posterior, 98.7% cell accuracy once localised).
 That belief is causal: steering it to another cell changes the predicted legal moves to that cell's 90% of the time (random
-edits: 4%), and steering to every cell in turn recovers all 112 interior walls of the maze from the model alone. Mechanistically,
+edits: 4%), and steering to every cell in turn recovers every passage and wall of the maze (112/112 interior edges) from the model alone. Mechanistically,
 one uniform-attention head integrates moves into a displacement. Middle layers then hold an egocentric sketch of walked passages, and
 editing a single remembered passage shifts the belief between candidate cells in the direction a map-matching account predicts.
 Location is recomputed from the move history at every token rather than carried forward. Early layers lay the cells out as a
@@ -56,7 +56,8 @@ flat sheet in grid coordinates; the last MLP contains place cells whose activity
 Results replicate on three further mazes and a 12×12 maze, survive walking policies never seen in training, and extend to a
 "slippery" world where the belief must stay graded even when the start is known. Trained on four mazes at once, the model's place neurons
 remap between mazes, and a maze token selects which stored map is read. In an open arena the model develops border cells rather than
-grid cells.</div>
+grid cells. Finally, goal-directed routes leave the map intact, but hub-and-spoke traffic that leaves moves unseen does not: that model is
+perfect on its own data and puts 39% probability on walls off-route, and 10% random walks in the mix restore the map.</div>
 
 <h2>1 · Introduction</h2>
 <p>Whether sequence models trained on next-token prediction build internal models of the process that generated their data is a
@@ -101,7 +102,7 @@ block 3 at α = 2 (random direction of equal norm: 3.5%), with a dose-response t
 with one from a walk that ends at <i>c′</i> succeeds 10%, 18%, 34%, 74% and 100% of the time at successive depths. Before block 3, later
 layers re-derive location from the history and overwrite edits at a single token. A minimum-norm edit W⁺(z′ − z) that swaps two probe
 logits fails (≤6%). It also constrains the other 62 logits, which pulls the edit away from the directions the network reads.</p>
-<p>Steering to each of the 64 cells and recording the allowed moves recovers <b>all 112 interior walls</b>. The edit does not
+<p>Steering to each of the 64 cells and recording the allowed moves recovers <b>all 112 interior edges</b> (80 passages, 32 walls). The edit does not
 persist: if the walk continues with a move legal from <i>c′</i>, the next prediction ignores the edit (14% vs 14% unsteered). Location is
 recomputed at every token, a parallel style of computation consistent with analyses of fixed-depth transformers [8].</p>
 <figure><img src="figs/steering.png" alt=""><figcaption><b>Figure 3.</b> Steering success by depth for four edit types (left), and dose-response
@@ -157,7 +158,7 @@ Bottom: their causal receptive fields. Right: rank of the neuron's own cell amon
 
 <h2>7 · Robustness and a slippery world</h2>
 <table>
-<tr><th>maze</th><th>KL to optimal (given / unknown)</th><th>probe cell acc.</th><th>steering (random)</th><th>walls</th><th>persistence</th></tr>
+<tr><th>maze</th><th>KL to optimal (given / unknown)</th><th>probe cell acc.</th><th>steering (random)</th><th>edges correct</th><th>persistence</th></tr>
 <tr><td>8×8, seed 0</td><td>0.0001 / 0.0062</td><td>98.7%</td><td>90% (4%)</td><td>112/112</td><td>14% / 14%</td></tr>
 <tr><td>8×8, seed 1</td><td>0.0001 / 0.0054</td><td>98.4%</td><td>84% (3%)</td><td>112/112</td><td>14% / 14%</td></tr>
 <tr><td>8×8, seed 2</td><td>0.0001 / 0.0052</td><td>98.9%</td><td>89% (3%)</td><td>112/112</td><td>12% / 12%</td></tr>
@@ -193,11 +194,25 @@ layout that matters for legal moves in an open room.</p>
 <figure><img src="figs/arena.png" alt=""><figcaption><b>Figure 10.</b> Open arena: coordinate cells (block 1) give way to border cells (blocks 3–4).
 Right: example firing maps.</figcaption></figure>
 
-<h2>10 · Limitations</h2>
+<h2>10 · What breaks the map: coverage, not purpose</h2>
+<p>Transformers trained on real taxi routes predict turns well without a coherent map [4]. To find out what in the data causes this, the same model
+was trained on the main maze (start known, 20k steps) on four kinds of walk. The first is uniform random walks. The second is shortest paths to hidden
+random goals ("routes"). The third is shortest paths that always head for one of two depots in opposite corners ("depots": 32 of 160 legal moves never
+occur and 90 are rare). The fourth is depot traffic with 10% random walks mixed in. The routes model, which never saw a random walk, puts 0.2% probability
+on walls when given one, keeps a linearly decodable location, and yields 108/112 edges under steering (AUC 0.99). The depots model is
+perfect on its own data (0.00% on walls, 99% probe accuracy). On random walks from a known start, however, it puts <b>39%</b> on walls, its location is
+decodable only 11% of the time, and steering recovers 85/112 edges. Its error jumps from 12% to 38% at the first move that was rare in its
+training data and stays above 30% for the next twelve moves, so it never re-localises: it has memorised routes rather than learned to integrate
+moves. Mixing in 10% random walks restores the map entirely (0.00% on walls off-route, 111/112 edges). Goal-directed data is not what breaks
+the map; sparse coverage of the world is.</p>
+<figure><img src="figs/routes.png" alt=""><figcaption><b>Figure 11.</b> Maps read out of four models by steering (misses circled; blue wash:
+training traffic per cell; squares: depots), and probability on walls on random walks and after steering.</figcaption></figure>
+
+<h2>11 · Limitations</h2>
 <p>All models share one architecture and small worlds, and the mechanistic analyses (Sections 5–6) were run on one maze. The matching step,
 where MLPs in blocks 3–4 compare the egocentric sketch with the stored maze, is only partly explained by the causal template effect, and the block-3 computation feeding the place neurons is untraced. Steering uses
-class-mean distances, computed with ground-truth labels, to set the edit size. Uniform random walks are friendly data, and the clean picture
-here may not survive partial observability or real trajectories [4].</p>
+class-mean distances, computed with ground-truth labels, to set the edit size. Section 10 shows that sparse coverage breaks the map in a small maze with a known
+start; partial observability, larger worlds and real trajectories [4] remain untested.</p>
 
 <h2>References</h2>
 <ol class="refs">
