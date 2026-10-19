@@ -178,6 +178,10 @@ Animals reuse the same hippocampal neurons across environments: on entering a ne
 * **Place neurons remap.** About 220 of 512 last-layer neurons have a compact place field in each maze, and many have one in several mazes. Their fields are nearly unrelated across mazes: mean field correlation 0.13 (pairs range 0.07–0.26) against 1.00 between two halves of the data in the same maze. They keep the same preferred cell only 5%–24% of the time (chance 1.6%). Remapping is mostly but not entirely global, as the second example neuron shows.
 * **The maze token selects the map.** With a known start, the walker's cell is the same whichever maze is assumed, since it is start plus displacement. Swapping *only* the maze token makes the predicted legal moves follow the new maze's walls at that cell 85%–89% of the time, against 3–4% for the old maze's. The position code is shared, and the context token decides which stored map it is checked against.
 
+**Capacity.** The same 0.8M-parameter network trained on **16 mazes** still learns them all. Lost-start KL averages 0.052 nats (0.018 for 4 mazes, 0.006 for one), place fields still remap (mean cross-maze correlation 0.19), and swapping the maze token still switches the map 86–90% of the time. Accuracy degrades gracefully as maps compete for the same weights:
+
+<p align="center"><img src="figures/capacity.png" width="560" alt="Capacity: 1, 4, 16 mazes"></p>
+
 ## Reproduce
 
 The quickest route is the [walkthrough notebook](notebooks/walkthrough.ipynb): about 15 s on a CPU, it reproduces the Bayes match, the belief probe, steering and map extraction.
@@ -196,6 +200,7 @@ python experiments/policy_shift.py         # walking styles never seen in traini
 python experiments/place_cells.py          # place cells / belief neurons
 python experiments/template_matching.py    # do place cells template-match the local sketch?
 python experiments/multimaze.py            # four mazes in one network: remapping, map switching
+python experiments/multimaze.py --n_mazes 16 --steps 40000 --out runs/multi16 --results results/multimaze16.json
 python experiments/spatial_attention.py    # heads that attend by location
 python -m cartographer.train --out runs/slip15 --slip 0.15 --p_known 0.5 && python experiments/slippery.py
 bash   experiments/sweep_mazes.sh          # 3 more mazes (+ README table: python experiments/summarize.py)

@@ -670,8 +670,40 @@ def fig_spatial_attention():
     plt.close(fig)
 
 
+def fig_capacity():
+    one = load("runs/main/train_log.json")[-1]
+    pts = [(1, one["kl_known"], one["kl_unknown"], None)]
+    for n, p in ((4, "results/multimaze.json"), (16, "results/multimaze16.json")):
+        if os.path.exists(p):
+            R = load(p)
+            kn = np.mean([v["known"] for v in R["kl"].values()])
+            un = np.mean([v["unknown"] for v in R["kl"].values()])
+            sw = np.mean([s["follows_new"] for s in R["swap"]])
+            pts.append((n, kn, un, sw))
+    fig, ax = plt.subplots(figsize=(6.8, 4.2))
+    x = [p[0] for p in pts]
+    ax.plot(x, [p[2] for p in pts], color=MODEL, marker="o", ms=7)
+    ax.plot(x, [p[1] for p in pts], color=REF, marker="o", ms=7)
+    ax.text(x[-1] * 1.12, pts[-1][2], "start unknown", color=MODEL, va="center", fontsize=9.5)
+    ax.text(x[-1] * 1.12, pts[-1][1], "start given", color=REF, va="center", fontsize=9.5)
+    for n, kn, un, sw in pts:
+        if sw is not None:
+            ax.annotate(f"token swap\nfollows new maze\n{sw:.0%}", (n, un), textcoords="offset points", xytext=(0, -12),
+                        ha="center", va="top", fontsize=8.5, color=SOFT)
+    ax.set_xscale("log", base=2); ax.set_yscale("log")
+    ax.set_xticks(x, [str(v) for v in x])
+    ax.set_xlim(0.7, x[-1] * 3)
+    ax.set_xlabel("number of mazes stored in one 0.8M-parameter network")
+    ax.set_ylabel("mean KL to optimal (nats / move)")
+    ax.set_title("Capacity: more maps in the same network cost accuracy, gracefully")
+    fig.text(0.01, 0.01, "1 maze: main model (20k steps); 4 mazes: 30k steps; 16 mazes: 40k steps.", fontsize=8.5, color=SOFT)
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.savefig(f"{FIG}/capacity.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template", "multimaze", "spatial_attention"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template", "multimaze", "spatial_attention", "capacity"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())

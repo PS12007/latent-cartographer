@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from cartographer.env import BayesFilter, make_maze, sample_walks  # noqa: E402
 from cartographer.model import GPT, GPTConfig  # noqa: E402
 
-N_MAZES, SEEDS, T = 4, [10, 11, 12, 13], 64
+N_MAZES, SEEDS, T = 4, [10, 11, 12, 13], 64   # overridden by --n_mazes
 
 
 def maze_token(k, maze):
@@ -199,8 +199,12 @@ def main():
     ap.add_argument("--out", default="runs/multi4")
     ap.add_argument("--steps", type=int, default=30000)
     ap.add_argument("--analyse", action="store_true")
+    ap.add_argument("--n_mazes", type=int, default=4)
+    ap.add_argument("--results", default="results/multimaze.json")
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = ap.parse_args()
+    global N_MAZES, SEEDS
+    N_MAZES, SEEDS = args.n_mazes, list(range(10, 10 + args.n_mazes))
     torch.manual_seed(0)
     os.makedirs(args.out, exist_ok=True)
     mazes = [make_maze(8, 8, 0.35, s) for s in SEEDS]
@@ -212,7 +216,7 @@ def main():
     else:
         model = train(args, mazes, args.device)
     res = analyse(model, mazes, args.device)
-    with open("results/multimaze.json", "w") as f:
+    with open(args.results, "w") as f:
         json.dump(res, f)
 
 
