@@ -35,6 +35,7 @@ The model is never told the maze, the coordinates, or that walls exist. To predi
 | Writing one remembered passage into the local map | belief shifts toward whichever candidate cell has that passage (+0.22 / −0.18 vs control) |
 | Replicates on 3 more mazes + a 12×12 maze | all walls recovered on every 8×8 maze; 261/264 on 12×12 |
 | Place cells in the last MLP layer | 127 of 512 neurons; while uncertain they track P(cell), not the single most likely cell |
+| Place cells template-match the local sketch (causal) | own cell is the best of 64 templates for 58% of neurons (chance 1.6%) |
 | Does a steered belief persist to the next step? | **No** (14% vs 14% unsteered): location is recomputed from the history at every token |
 
 ## 1. The model is (nearly) Bayes-optimal, and the belief is in the residual stream
