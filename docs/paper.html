@@ -55,7 +55,8 @@ Location is recomputed from the move history at every token rather than carried 
 flat sheet in grid coordinates; the last MLP contains place cells whose activity tracks the posterior probability of their cell.
 Results replicate on three further mazes and a 12×12 maze, survive walking policies never seen in training, and extend to a
 "slippery" world where the belief must stay graded even when the start is known. Trained on four mazes at once, the model's place neurons
-remap between mazes, and a maze token selects which stored map is read.</div>
+remap between mazes, and a maze token selects which stored map is read. In an open arena the model develops border cells rather than
+grid cells.</div>
 
 <h2>1 · Introduction</h2>
 <p>Whether sequence models trained on next-token prediction build internal models of the process that generated their data is a
