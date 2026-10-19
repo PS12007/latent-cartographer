@@ -68,6 +68,7 @@ def draw_maze(ax, maze, values=None, cmap_color=MODEL, open_=None, lw=1.6):
 
 # ------------------------------------------------------------------ Fig 1: beliefs over a walk
 def fig_beliefs():
+    torch.manual_seed(0)
     model, ck = load_model("runs/main/model.pt")
     maze = Maze.from_dict(ck["maze"])
     train = make_dataset(maze, 3000, 64, 0.35, seed=101)
@@ -100,10 +101,10 @@ def fig_beliefs():
     axes[1, 0].text(-0.6, 4, "decoded from model", rotation=90, va="center", ha="center", color=MODEL, fontsize=11.5)
     fig.suptitle("Start unknown. The model’s internal belief (bottom) tracks the exact posterior (top), multiple modes included.",
                  x=0.02, ha="left", fontsize=12.5, color=INK)
-    fig.text(0.02, 0.01, "Linear probe on the residual stream after block 3. Ring = true position (never shown to the model). Walk chosen only for being "
-             "multi-modal at move 8. Here the probe slips one cell south at the end; it is exact on 96% of localised steps, and 64% of misses are adjacent cells.",
+    fig.text(0.02, 0.01, "Linear probe on the residual stream after block 3. Ring = true position (never shown to the model). Walk chosen only for being multi-modal at move 8.\n"
+             "Here the probe slips one cell south at the end; it is exact on 96% of localised steps, and 64% of its misses are within one cell.",
              color=SOFT, fontsize=9.5)
-    fig.subplots_adjust(left=0.035, right=0.995, top=0.87, bottom=0.09, wspace=0.06, hspace=0.06)
+    fig.subplots_adjust(left=0.035, right=0.995, top=0.87, bottom=0.11, wspace=0.06, hspace=0.06)
     fig.savefig(f"{FIG}/beliefs.png", dpi=160)
     plt.close(fig)
 
