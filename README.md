@@ -4,7 +4,7 @@
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PS12007/latent-cartographer/blob/main/notebooks/walkthrough.ipynb) [![tests](https://github.com/PS12007/latent-cartographer/actions/workflows/tests.yml/badge.svg)](https://github.com/PS12007/latent-cartographer/actions/workflows/tests.yml)
 
-**[📄 Technical report (PDF)](docs/latent-cartographer.pdf)** · **[▶ Live demo](https://ps12007.github.io/latent-cartographer/)**: the model runs in your browser (plain JavaScript, no server). Walk the maze, watch its internal belief collapse onto your position, click a cell to *steer* what it believes, or press **Extract the map** to rebuild the maze from the network alone.
+**[📄 Technical report (PDF)](docs/latent-cartographer.pdf)** · **[▶ Live demo](https://ps12007.github.io/latent-cartographer/)**: the model runs in your browser (plain JavaScript, no server). Walk the maze, watch its internal belief collapse onto your position, click a cell to *steer* what it believes, press **Extract the map** to rebuild the maze from the network alone, knock out attention heads, or switch to the 12×12 and slippery worlds.
 
 ![Belief over a walk: exact Bayes vs decoded from the model](figures/beliefs.png)
 
