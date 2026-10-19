@@ -20,7 +20,7 @@ import torch.nn.functional as F
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from cartographer.analysis import collect, fit_belief_probe, fit_multilabel_probe, make_dataset  # noqa: E402
-from cartographer.env import Maze  # noqa: E402
+from cartographer.env import BayesFilter, Maze, sample_walks  # noqa: E402
 from cartographer.model import load_model  # noqa: E402
 
 
@@ -42,34 +42,45 @@ def main():
     nL = model.cfg.n_layer
     sd = {k: v for k, v in model.state_dict().items()}
 
+    slip = ck["args"].get("slip", 0.0)
     # belief probes at every residual stream point (embed, after each block)
-    train = make_dataset(maze, 4000, ck["args"]["T"], 0.35, seed=101)
+    if slip > 0:   # slippery world: beliefs from the slip-aware filter
+        rng = np.random.default_rng(101)
+        tok, cells, _ = sample_walks(maze, 4000, ck["args"]["T"], 0.5, rng, slip=slip)
+        bel, _ = BayesFilter(maze, slip=slip).run(torch.tensor(tok))
+        train = {"tokens": tok, "cell": cells, "belief": bel.float().numpy()}
+    else:
+        train = make_dataset(maze, 4000, ck["args"]["T"], 0.35, seed=101)
     keys = [f"resid_{l}" for l in range(nL + 1)]
     acts = collect(model, train["tokens"], keys)
     P = torch.tensor(train["belief"]).reshape(-1, maze.N)
     probes = {}
-    loc = P.max(-1).values > 0.99
+    loc = P.max(-1).values > (0.99 if slip == 0 else 0.9)
     cell = torch.tensor(train["cell"]).reshape(-1)
     for k in keys:
         X = acts[k].reshape(-1, acts[k].shape[-1])
         pr = fit_belief_probe(X, P, device=args.device).cpu()
         # class-conditional means (localised states) set the natural scale of a steering edit
-        means = torch.stack([X[loc & (cell == c)].mean(0) for c in range(maze.N)])
+        means = torch.stack([X[loc & (cell == c)].mean(0) if (loc & (cell == c)).any() else X[cell == c].mean(0)
+                             for c in range(maze.N)])
         probes[k] = {"W": b64(pr.lin.weight), "b": b64(pr.lin.bias), "means": b64(means)}
         print("probe", k, flush=True)
 
-    # egocentric-map probes (visited cells + walked passages in a 7x7 window around the walker)
+    # egocentric-map probes (visited cells + walked passages in a 7x7 window around the walker);
+    # not defined in the slippery world, where intended moves are not actual moves
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from egocentric import R as EGO_R, ego_targets
-    ego_data = make_dataset(maze, 3000, ck["args"]["T"], 0.0, seed=111)
-    Vt, Et = ego_targets(ego_data)
-    Xe = collect(model, ego_data["tokens"], ["resid_3"])["resid_3"]
-    Xe = Xe.reshape(-1, Xe.shape[-1])
-    ego = {"R": EGO_R, "layer": 3}
-    for name, Y in (("visited", Vt), ("passages", Et)):
-        pr = fit_multilabel_probe(Xe, torch.tensor(Y).reshape(-1, Y.shape[-1]), device=args.device).cpu()
-        ego[name] = {"W": b64(pr.lin.weight), "b": b64(pr.lin.bias)}
-    print("ego probes", flush=True)
+    ego = None
+    if slip == 0:
+        ego_data = make_dataset(maze, 3000, ck["args"]["T"], 0.0, seed=111)
+        Vt, Et = ego_targets(ego_data)
+        Xe = collect(model, ego_data["tokens"], ["resid_3"])["resid_3"]
+        Xe = Xe.reshape(-1, Xe.shape[-1])
+        ego = {"R": EGO_R, "layer": 3}
+        for name, Y in (("visited", Vt), ("passages", Et)):
+            pr = fit_multilabel_probe(Xe, torch.tensor(Y).reshape(-1, Y.shape[-1]), device=args.device).cpu()
+            ego[name] = {"W": b64(pr.lin.weight), "b": b64(pr.lin.bias)}
+        print("ego probes", flush=True)
 
     # per-position mean output of every head, for mean-ablation in the demo
     head_means = {}
@@ -107,9 +118,13 @@ def main():
         ref["ablate_0_1_logits"] = model(torch.tensor([ref_tokens], device=args.device))[0].cpu().tolist()
     model.blocks[0].attn.head_hook = None
 
+    # reference posterior from the Python filter, to check the JS filter (incl. slips)
+    bel_ref, _ = BayesFilter(maze, slip=slip).run(torch.tensor([ref_tokens]))
+    ref["belief_last"] = bel_ref[0, -1].tolist()
+
     out = {"config": ck["config"], "maze": maze.to_dict(),
            "weights": {k: b64(v) for k, v in sd.items()},
-           "probes": probes, "ego": ego, "head_means": head_means, "reference": ref}
+           "probes": probes, "ego": ego, "head_means": head_means, "reference": ref, "slip": slip}
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(out, f)

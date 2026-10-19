@@ -7,21 +7,13 @@ const C = {
   verm: [194, 56, 31], indigo: [36, 64, 107], ochre: [168, 116, 26],
 };
 
-const res = await fetch("assets/model.json");
-const J = await res.json();
-const model = new GPT(J);
-const world = new World(J.maze);
-const L = model.cfg.n_layer, MAXT = model.cfg.block_size - 1;
-
-// ---- self-test: JS forward pass vs PyTorch reference
-{
-  const out = model.forward(J.reference.tokens);
-  let err = 0;
-  out.logits.forEach((row, i) => row.forEach((v, j) => (err = Math.max(err, Math.abs(v - J.reference.logits[i][j])))));
-  console.log(`JS vs PyTorch max |Δlogit| = ${err.toExponential(2)}`);
-  const f = document.querySelector("footer");
-  f.insertAdjacentHTML("beforeend", ` · JS ⇄ PyTorch parity: max |Δlogit| = ${err.toExponential(1)}`);
-}
+let J, model, world, L, MAXT;
+const WORLDS = {
+  model: "A fixed 8×8 maze. One time in three the walk starts at a known cell; otherwise the model must work out where it is.",
+  model_big12: "A 12×12 maze (144 cells) with the same 0.8M-parameter model. Localising takes longer; offline extraction recovers 261 of 264 walls.",
+  model_slip15: "Slippery: 15% of moves silently fail (the red dot sometimes stays put). Even from a known start the belief spreads out, and the model has to keep it graded.",
+};
+const cache = {};
 
 const S = { start: null, cells: [], tokens: [], beliefs: [], layer: 3, alpha: 2, head: 0, steer: null, out: null, timer: null, ablated: new Set() };
 
@@ -42,7 +34,7 @@ function step(m) {
   const c = S.cells.at(-1);
   if (!world.open[c][m] || S.tokens.length > MAXT) return false;
   S.steer = null;
-  S.cells.push(world.nxt[c][m]);
+  S.cells.push(Math.random() < world.slip ? c : world.nxt[c][m]);   // in the slippery world a move can silently fail
   S.tokens.push(m);
   S.beliefs.push(world.update(S.beliefs.at(-1), m));
   return true;
@@ -200,7 +192,7 @@ function update() {
   }).join("") + (last >= MAXT ? ` <em class="note">context full</em>` : "");
 
   drawAttention();
-  drawEgo(out.resid[model.ego.layer][last]);
+  if (model.ego) drawEgo(out.resid[model.ego.layer][last]);
 }
 
 // ---- Fig. e: egocentric sketch
@@ -310,16 +302,23 @@ addEventListener("keydown", (e) => {
 
 // ---- Fig. e: extract the whole maze by steering
 function localisedWalk() {
-  for (;;) {
-    let c = rand(world.N), b = world.prior(null);
-    const toks = [UNK];
-    for (let t = 0; t < 40; t++) {
+  // a walk after which the walker's cell is (nearly) certain; in the slippery world, a short known-start walk
+  const slippy = world.slip > 0;
+  let best = null;
+  for (let tries = 0; tries < 400; tries++) {
+    let c = rand(world.N), b = world.prior(slippy ? c : null);
+    const toks = [slippy ? START0 + c : UNK];
+    for (let t = 0; t < (slippy ? 3 : 40); t++) {
       const legal = [0, 1, 2, 3].filter((d) => world.open[c][d]);
       const m = legal[rand(legal.length)];
-      toks.push(m); b = world.update(b, m); c = world.nxt[c][m];
+      toks.push(m); b = world.update(b, m);
+      if (!(Math.random() < world.slip)) c = world.nxt[c][m];
     }
-    if (Math.max(...b) > 0.99) return toks;
+    const conf = Math.max(...b);
+    if (conf > (slippy ? 0.8 : 0.99)) return toks;
+    if (!best || conf > best[0]) best = [conf, toks];
   }
+  return best[1];
 }
 
 let extracting = false;
@@ -363,11 +362,6 @@ async function extract() {
   $("#extractBtn").disabled = false;
   extracting = false;
 }
-drawMaze($("#extTruth"), null, null);
-drawMaze($("#extModel"), null, null, { open: world.open.map((row, c) => row.map((_, d) => {
-  const r = Math.floor(c / world.W) + DRS[d], q = (c % world.W) + DCS[d];
-  return r >= 0 && q >= 0 && r < world.H && q < world.W;           // only the outer boundary until extracted
-})) });
 $("#extractBtn").onclick = extract;
 $("#koBtn").onclick = () => {
   const key = `${S.attnLayer},${S.head}`;
@@ -375,9 +369,38 @@ $("#koBtn").onclick = () => {
   update();
 };
 $("#koReset").onclick = () => { S.ablated.clear(); update(); };
-if (location.hash === "#extract") setTimeout(extract, 300);
+async function loadWorld(name) {
+  $("#app").classList.add("loading");
+  if (!cache[name]) cache[name] = await (await fetch(`assets/${name}.json`)).json();
+  J = cache[name];
+  model = new GPT(J);
+  world = new World(J.maze, J.slip || 0);
+  L = model.cfg.n_layer; MAXT = model.cfg.block_size - 1;
+  // self-test: JS forward pass vs the PyTorch reference stored with the weights
+  const ref = model.forward(J.reference.tokens);
+  let err = 0;
+  ref.logits.forEach((row, i) => row.forEach((v, j) => (err = Math.max(err, Math.abs(v - J.reference.logits[i][j])))));
+  console.log(`${name}: JS vs PyTorch max |Δlogit| = ${err.toExponential(2)}`);
+  $("#parity").textContent = `JS ⇄ PyTorch parity: max |Δlogit| = ${err.toExponential(1)}`;
+  // reset everything that depends on the model
+  $("#strip").innerHTML = ""; $("#headpick").innerHTML = "";
+  S.ablated = new Set(); S.layer = Math.min(3, L); S.head = 0; S.attnLayer = 0; S.steer = null;
+  document.querySelectorAll(".worlds button").forEach((b) => b.classList.toggle("sel", b.dataset.world === name));
+  $("#worldNote").textContent = WORLDS[name];
+  $(".ego").classList.toggle("na", !model.ego);
+  $("#extractScore").textContent = "";
+  drawMaze($("#extTruth"), null, null);
+  drawMaze($("#extModel"), null, null, { open: world.open.map((row, c) => row.map((_, d) => {
+    const r = Math.floor(c / world.W) + DRS[d], q = (c % world.W) + DCS[d];
+    return r >= 0 && q >= 0 && r < world.H && q < world.W;           // only the outer boundary until extracted
+  })) });
+  newWalk(world.slip > 0 ? rand(world.N) : null);   // slippery world: show a known start spreading out
+  for (let i = 0; i < 6; i++) randomStep();
+  update();
+  $("#app").classList.remove("loading");
+}
 
-newWalk(null);
-for (let i = 0; i < 6; i++) randomStep();
-update();
-$("#app").classList.remove("loading");
+document.querySelectorAll(".worlds button").forEach((b) => (b.onclick = () => { if (!extracting) { stopPlay(); loadWorld(b.dataset.world); } }));
+const hashWorld = location.hash.startsWith("#world=") ? location.hash.slice(7).split("&")[0] : "model";
+await loadWorld(WORLDS[hashWorld] ? hashWorld : "model");
+if (location.hash.includes("extract")) setTimeout(extract, 300);

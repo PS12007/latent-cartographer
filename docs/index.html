@@ -25,6 +25,12 @@
   Somewhere in its residual stream, it has drawn itself a map.</p>
 </header>
 
+<nav class="worlds" aria-label="Choose a world">
+  <span class="wl">World</span>
+  <button data-world="model">8×8 maze</button><button data-world="model_big12">12×12 maze</button><button data-world="model_slip15">Slippery 8×8</button>
+  <span id="worldNote" class="note"></span>
+</nav>
+
 <main id="app" class="loading">
   <section class="sheet territory">
     <div class="sheet-head"><span class="fig">Fig. a</span><h2>The territory</h2></div>
@@ -91,6 +97,7 @@
       (the model stops knowing where it is), or the block-3 heads, which only matter when the start is unknown.</p>
   </section>
   <section class="sheet ego">
+    <p class="na-note note">Not defined in the slippery world: a move token no longer says where the walker went.</p>
     <div class="sheet-head"><span class="fig">Fig. e</span><h2>Its local sketch</h2></div>
     <div class="ego-pair">
       <figure><canvas id="egoTrue" width="220" height="220"></canvas><figcaption>what it actually walked</figcaption></figure>
@@ -105,7 +112,7 @@
     <div class="sheet-head"><span class="fig">Fig. f</span><h2>The map, redrawn from the model’s mind</h2></div>
     <div class="extract-row">
       <div class="extract-text">
-        <p>Take a walk where the model knows where it is. For each of the 64 cells, steer its belief to that cell and record
+        <p>Take a walk where the model knows where it is. For every cell, steer its belief to that cell and record
           which moves it now considers possible. Draw a wall wherever it refuses to go. The environment is never
           consulted; every line on the right comes from the network’s weights.</p>
         <button id="extractBtn" class="ink">Extract the map ▸</button>
@@ -199,7 +206,7 @@
   </div>
 </section>
 
-<footer><a href="latent-cartographer.pdf">Technical report (PDF)</a> · Model runs entirely in your browser in plain JavaScript · <a href="https://github.com/PS12007/latent-cartographer">source &amp; paper-style write-up</a></footer>
+<footer><a href="latent-cartographer.pdf">Technical report (PDF)</a> · <span id="parity"></span> · Model runs entirely in your browser in plain JavaScript · <a href="https://github.com/PS12007/latent-cartographer">source &amp; paper-style write-up</a></footer>
 
 <script type="module" src="js/app.js"></script>
 </body>

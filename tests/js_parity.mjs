@@ -3,8 +3,14 @@ import { readFileSync } from "node:fs";
 import { GPT, softmax } from "../docs/js/model.js";
 import { World, START0, UNK } from "../docs/js/world.js";
 
-const J = JSON.parse(readFileSync(new URL("../docs/assets/model.json", import.meta.url)));
-const model = new GPT(J), world = new World(J.maze);
+for (const name of ["model", "model_big12", "model_slip15"]) {
+  const J = JSON.parse(readFileSync(new URL(`../docs/assets/${name}.json`, import.meta.url)));
+  const model = new GPT(J), world = new World(J.maze, J.slip || 0);
+  console.log(`== ${name}`);
+  check(J, model, world);
+}
+
+function check(J, model, world) {
 const out = model.forward(J.reference.tokens);
 let err = 0;
 out.logits.forEach((r, i) => r.forEach((v, j) => (err = Math.max(err, Math.abs(v - J.reference.logits[i][j])))));
@@ -20,7 +26,14 @@ if (J.reference.ablate_0_1_logits) {
   ko.logits.forEach((r, i) => r.forEach((v, j) => (kerr = Math.max(kerr, Math.abs(v - J.reference.ablate_0_1_logits[i][j])))));
   console.log(`knock-out B1H1: max |logit diff| ${kerr.toExponential(2)}`);
 }
-if (err > 1e-3 || perr > 1e-3 || kerr > 1e-3) { console.error("PARITY FAIL"); process.exit(1); }
+let berr = 0;
+if (J.reference.belief_last) {
+  let b = world.prior(J.reference.tokens[0] >= START0 ? J.reference.tokens[0] - START0 : null);
+  for (const m of J.reference.tokens.slice(1)) b = world.update(b, m);
+  b.forEach((v, i) => (berr = Math.max(berr, Math.abs(v - J.reference.belief_last[i]))));
+  console.log(`Bayes filter (slip ${world.slip}): max |diff| vs Python ${berr.toExponential(2)}`);
+}
+if (err > 1e-3 || perr > 1e-3 || kerr > 1e-3 || berr > 1e-9) { console.error("PARITY FAIL"); process.exit(1); }
 
 // steering sanity: 40-move walks, steer at resid_3 with alpha 2 to a random cell with different walls
 let ok = 0, n = 0, seed = 1;
@@ -40,3 +53,4 @@ for (let trial = 0; trial < 60; trial++) {
   n++; if (p.every((v, d) => (v > 0.1) === world.open[tgt][d])) ok++;
 }
 console.log(`JS steering success ${ok}/${n}`);
+}

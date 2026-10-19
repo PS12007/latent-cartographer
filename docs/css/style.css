@@ -45,6 +45,15 @@ h1 em { font-style: italic; font-weight: 500; color: var(--verm); }
 .dek { max-width: 760px; font-size: 21px; line-height: 1.45; color: var(--ink-soft); margin: 0; animation: rise 1s .16s ease both; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
+/* ---------- world picker */
+.worlds { max-width: 1240px; margin: 18px auto 0; padding: 0 28px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.worlds .wl { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); margin-right: 6px; }
+.worlds button.sel { background: var(--ink); color: var(--paper); }
+.worlds .note { flex-basis: 100%; margin-top: 6px; font-size: 15px; }
+.ego .na-note { display: none; }
+.ego.na .na-note { display: block; }
+.ego.na .ego-pair, .ego.na .ego-pair + .note { opacity: .2; }
+
 /* ---------- layout */
 main {
   max-width: 1240px; margin: 28px auto 0; padding: 0 28px;
@@ -187,7 +196,7 @@ footer { max-width: 1240px; margin: 40px auto 0; padding: 18px 28px 48px; font-f
 }
 @media (max-width: 720px) {
   main { grid-template-columns: 1fr; padding: 0 16px; }
-  .masthead, .essay, footer { padding-left: 16px; padding-right: 16px; }
+  .masthead, .essay, footer, .worlds { padding-left: 16px; padding-right: 16px; }
   .metrics { grid-template-columns: 1fr 1fr; }
   .controls { grid-template-columns: 1fr; }
   .extract-row, .pair { grid-template-columns: 1fr; }
