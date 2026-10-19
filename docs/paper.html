@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Latent Cartographer: technical report</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #1b1914; --soft: #5a5246; --rule: #c9bc9f; --accent: #b2331b; }
+  @page { size: Letter; margin: 0.8in 0.85in; }
+  html { background: #fff; }
+  body { font-family: "Newsreader", Georgia, serif; color: var(--ink); font-size: 11pt; line-height: 1.45; max-width: 7in; margin: 0 auto; padding: 32px 16px; background: #fff; }
+  h1 { font-size: 21pt; line-height: 1.15; margin: 0 0 6px; font-weight: 600; letter-spacing: -.01em; }
+  .sub { font-size: 12.5pt; color: var(--soft); margin: 0 0 10px; font-style: italic; }
+  .meta { font-family: "DM Mono", monospace; font-size: 8.5pt; color: var(--soft); margin-bottom: 18px; }
+  .meta a { color: var(--accent); }
+  .abstract { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 10px 0; margin: 0 0 18px; font-size: 10.5pt; }
+  .abstract b { font-variant: small-caps; letter-spacing: .04em; }
+  h2 { font-size: 13pt; margin: 20px 0 6px; font-weight: 600; break-after: avoid; }
+  h3 { font-size: 11pt; margin: 14px 0 4px; font-weight: 600; font-style: italic; break-after: avoid; }
+  p { margin: 0 0 8px; text-align: justify; hyphens: auto; }
+  figure { margin: 12px 0 14px; break-inside: avoid; }
+  figure img { width: 100%; display: block; }
+  figure.half img { width: 62%; margin: 0 auto; }
+  figcaption { font-size: 9.2pt; color: var(--soft); margin-top: 5px; line-height: 1.35; }
+  figcaption b { color: var(--ink); }
+  table { border-collapse: collapse; width: 100%; font-size: 9.2pt; margin: 8px 0 12px; break-inside: avoid; }
+  th, td { border-bottom: 1px solid var(--rule); padding: 3px 6px; text-align: left; }
+  th { border-bottom: 1px solid var(--ink); font-weight: 600; }
+  code { font-family: "DM Mono", monospace; font-size: 9pt; }
+  ol.refs { font-size: 9pt; padding-left: 18px; }
+  ol.refs li { margin-bottom: 3px; }
+  .k { font-variant: small-caps; }
+</style>
+</head>
+<body>
+
+<h1>Latent Cartographer: a transformer trained on move sequences builds, uses and exposes a map</h1>
+<p class="sub">Belief tracking, egocentric localisation and probabilistic place cells in a 0.8M-parameter GPT</p>
+<p class="meta">PS12007 · technical report · October 2026 ·
+  code &amp; data <a href="https://github.com/PS12007/latent-cartographer">github.com/PS12007/latent-cartographer</a> ·
+  interactive demo <a href="https://ps12007.github.io/latent-cartographer/">ps12007.github.io/latent-cartographer</a></p>
+
+<div class="abstract"><b>Abstract.</b>
+We train a small GPT on random walks through a hidden 8×8 maze, written only as move tokens (<code>N E S W</code>); the start cell
+is given in a third of sequences and unknown in the rest. Because the walker chooses uniformly among open directions, the
+Bayes-optimal next-move distribution and the exact posterior over the walker's cell are computable, which gives ground truth
+for both behaviour and internal state. The model comes within 0.006 nats of the optimal loss. Its residual stream contains a
+linearly decodable belief over all 64 cells (KL 0.10 nats to the exact posterior, 98.7% cell accuracy once localised).
+That belief is causal: steering it to another cell changes the predicted legal moves to that cell's 90% of the time (random
+edits: 4%), and steering to every cell in turn recovers all 112 interior walls of the maze from the model alone. Mechanistically,
+one uniform-attention head integrates moves into a displacement. Middle layers then hold an egocentric sketch of walked passages, and
+editing a single remembered passage shifts the belief between candidate cells in the direction a map-matching account predicts.
+Location is recomputed from the move history at every token rather than carried forward. Early layers lay the cells out as a
+flat sheet in grid coordinates; the last MLP contains place cells whose activity tracks the posterior probability of their cell.
+Results replicate on three further mazes and a 12×12 maze, survive walking policies never seen in training, and extend to a
+"slippery" world where the belief must stay graded even when the start is known.</div>
+
+<h2>1 · Introduction</h2>
+<p>Whether sequence models trained on next-token prediction build internal models of the process that generated their data is a
+central question in interpretability. Board-game studies found decodable and causally editable board states in Othello-playing
+transformers [1, 2]. Work on hidden Markov processes showed that residual streams can encode Bayesian belief states [3]. A study of
+real taxi routes found that strong next-token prediction can coexist with an <em>incoherent</em> map [4]. Navigation is a natural middle
+ground. It has a spatial latent that can be drawn, a known neuroscience of path integration and place cells [5, 6, 7], and, when
+the generating process is chosen carefully, an exactly computable optimal observer.</p>
+<p>We build such a setting and push it as far as a single small model allows: from behaviour to linear representations, to causal
+edits, to an end-to-end readout of the whole environment, and finally to heads, neurons and the geometry of the representation.</p>
+
+<h2>2 · Setup</h2>
+<p><b>World.</b> A randomised depth-first-search maze on an 8×8 grid, with 35% of remaining interior walls removed so that the maze has
+loops. <b>Data.</b> Uniform random walks of 64 moves. A sequence is <code>[start, m₁, …, m₆₄]</code>, where <code>start</code> is either
+the start cell (35%) or an "unknown" token. <b>Model.</b> A pre-LayerNorm GPT with 4 blocks, d=128, 4 heads, learned positions and a
+4-way output head (811k parameters), trained for 20k steps of batch 256 with next-token cross-entropy on <em>sampled</em> moves (≈330M
+tokens; 7.5 minutes on a laptop GPU). <b>Ground truth.</b> With uniform choice among open sides, the posterior over the current cell after
+moves m₁..m<sub>t</sub> follows the exact recursion b<sub>t</sub>(c′) ∝ Σ<sub>c</sub> b<sub>t−1</sub>(c)·P(m<sub>t</sub>|c)·[c′ = next(c, m<sub>t</sub>)],
+and the optimal predictive distribution is Σ<sub>c</sub> b<sub>t</sub>(c)·P(m|c). We verify the filter against brute-force enumeration over
+start cells, and in the slippery variant over every slip pattern.</p>
+
+<figure><img src="figs/beliefs.png" alt="">
+<figcaption><b>Figure 1.</b> One unknown-start walk. Top: exact posterior. Bottom: belief decoded from the residual stream after block 3 by a
+linear probe. The decoded belief follows the multi-modal posterior as it collapses. In the last panel the probe slips one cell; across
+the test set it is exact on 96% of localised steps, and 64% of its errors are within one cell.</figcaption></figure>
+
+<h2>3 · Behaviour and representation</h2>
+<p>The model reaches cross-entropy 0.9929 nats against the optimal 0.9888, a KL of 0.0001 nats per move with a known start and 0.006 with an
+unknown start. We fit linear probes at the nine points of the residual stream (Fig. 2). Displacement since the start is linear after
+block 1 (R² 0.97), then fades. A 64-way softmax probe trained against the exact posterior falls from KL 3.42 (embedding) to 0.10 (block 4
+attention), with 98.7% top-1 accuracy once localised. It stays at KL 0.31 on steps where the posterior is still spread over several cells.
+Decoding the posterior from the model's own output distribution with an MLP gives only KL 1.64, so the stream carries far more than the
+4-way prediction requires. A randomly initialised network of the same shape gives KL ≈3.3 at every layer.</p>
+<figure><img src="figs/probes.png" alt=""><figcaption><b>Figure 2.</b> Linear probes across depth for displacement, the full belief, and
+the current cell. Dashed: random initialisation. Dotted: time-only and output-decoded baselines.</figcaption></figure>
+
+<h2>4 · The belief is causal, and the maze can be extracted</h2>
+<p>On walks where the posterior is certain the walker is in cell <i>c</i>, we edit the newest token's residual vector only, toward a random
+cell <i>c′</i> with different open sides. Success means the set of moves given more than 10% probability equals the open sides of <i>c′</i>.
+Moving along the probe direction, <code>x + α‖μ<sub>c′</sub> − μ<sub>c</sub>‖·unit(W<sub>c′</sub> − W<sub>c</sub>)</code>, succeeds 90% of the time after
+block 3 at α = 2 (random direction of equal norm: 3.5%), with a dose-response that peaks and then declines. Replacing the whole vector
+with one from a walk that ends at <i>c′</i> succeeds 10%, 18%, 34%, 74% and 100% of the time at successive depths. Before block 3, later
+layers re-derive location from the history and overwrite edits at a single token. A minimum-norm edit W⁺(z′ − z) that swaps two probe
+logits fails (≤6%). It also constrains the other 62 logits, which pulls the edit away from the directions the network reads.</p>
+<p>Steering to each of the 64 cells and recording the allowed moves recovers <b>all 112 interior walls</b>. The edit does not
+persist: if the walk continues with a move legal from <i>c′</i>, the next prediction ignores the edit (14% vs 14% unsteered). Location is
+recomputed at every token, a parallel style of computation consistent with analyses of fixed-depth transformers [8].</p>
+<figure><img src="figs/steering.png" alt=""><figcaption><b>Figure 3.</b> Steering success by depth for four edit types (left), and dose-response
+after block 3 (right).</figcaption></figure>
+
+<h2>5 · Mechanism: dead reckoning, an egocentric sketch, and matching</h2>
+<p><b>Rejected hypothesis.</b> A natural parallel algorithm has each token mark the start cells its own move rules out and later layers
+average these exclusion masks. The single-step mask is not linearly decodable (balanced accuracy 0.58 vs 0.51 at random init). The
+cumulative set of surviving starts is only weakly recoverable even with an MLP probe (0.87 vs 0.77).</p>
+<p><b>Egocentric sketch.</b> What is decodable is a window of the walk relative to the walker's current position: which offsets have been
+visited and which passages walked. It peaks in block 3 (balanced accuracy 0.89 and 0.84, vs ≈0.6 at random init) and declines as the
+maze-frame position takes over. To test use, we take moments with exactly two candidate cells, A (true) and B, and write "this passage was
+walked" into the residual stream after block 3, for a passage not yet walked. A passage that exists only around B shifts
+P(B)/(P(A)+P(B)) by +0.28 ± 0.01 at α = 8. One that exists only around A shifts it by −0.11 ± 0.01, and one that exists around both by
++0.06 ± 0.01 (n = 600). The opposite signs are what a map-matching mechanism predicts.</p>
+<figure class="half"><img src="figs/egocausal.png" alt=""><figcaption><b>Figure 4.</b> Editing one remembered passage moves the belief toward the
+candidate cell at which that passage exists. Bands: 95% intervals.</figcaption></figure>
+<p><b>Heads.</b> Mean-ablating single heads separates roles. Block-1 head 1 attends almost exactly uniformly (normalised entropy 0.999) and is
+the integrator: ablating it raises known-start KL from 0.0001 to 0.92. Block-1 head 3 reads the start token. Nine heads, concentrated in
+blocks 2 and 3, cost 7–80× more when the start is unknown than when it is given.</p>
+<figure class="half"><img src="figs/heads.png" alt=""><figcaption><b>Figure 5.</b> Damage from mean-ablating each head, for known-start
+(x) versus unknown-start (y) walks.</figcaption></figure>
+
+<h2>6 · Geometry and neurons</h2>
+<p>Averaging activations per cell over localised moments gives 64 points per layer. After block 1 two principal components carry 85% of
+their variance and redraw the maze as an intact sheet. Representational distances track grid distance (Spearman 0.90). Walking distance adds
+nothing given grid distance (partial 0.01), while grid distance adds a lot given walking distance (0.72), so this is a coordinate map, not a
+graph. By block 4 the grid structure is gone (0.02) and cells group by their wall configuration (0.49), the format needed for the output.</p>
+<figure><img src="figs/geometry.png" alt=""><figcaption><b>Figure 6.</b> Left and centre: first two principal components of per-cell mean
+activations after blocks 1 and 4. Right: rank correlation of representational distance with grid distance, walking distance and wall
+dissimilarity.</figcaption></figure>
+<p>Location-selective MLP neurons appear with depth: 0, 1, 18 and 127 of 512 in blocks 1–4. A neuron counts as a place cell if its cell
+explains most of its variance, far more than the cell's wall configuration does, within a compact field. When the model is uncertain,
+these neurons follow the posterior probability of their cell (mean r = 0.45) more closely than an indicator of the most likely cell
+(0.33) or of the true cell (0.24), for 98% of them. This graded code resembles probabilistic population codes proposed for Bayesian
+computation in the brain [9].</p>
+<figure><img src="figs/place_cells.png" alt=""><figcaption><b>Figure 7.</b> Six block-4 place cells (mean activation per cell), and the
+correlation of each place cell's activity with posterior probability versus with "most likely cell" on uncertain moments.</figcaption></figure>
+
+<h2>7 · Robustness and a slippery world</h2>
+<table>
+<tr><th>maze</th><th>KL to optimal (given / unknown)</th><th>probe cell acc.</th><th>steering (random)</th><th>walls</th><th>persistence</th></tr>
+<tr><td>8×8, seed 0</td><td>0.0001 / 0.0062</td><td>98.7%</td><td>90% (4%)</td><td>112/112</td><td>14% / 14%</td></tr>
+<tr><td>8×8, seed 1</td><td>0.0001 / 0.0054</td><td>98.4%</td><td>84% (3%)</td><td>112/112</td><td>14% / 14%</td></tr>
+<tr><td>8×8, seed 2</td><td>0.0001 / 0.0052</td><td>98.9%</td><td>89% (3%)</td><td>112/112</td><td>12% / 12%</td></tr>
+<tr><td>8×8, seed 3</td><td>0.0001 / 0.0058</td><td>98.1%</td><td>82% (4%)</td><td>112/112</td><td>14% / 14%</td></tr>
+<tr><td>12×12, seed 0</td><td>0.0002 / 0.0131</td><td>96.4%</td><td>80% (4%)</td><td>261/264</td><td>12% / 12%</td></tr>
+</table>
+<p>Each row is an independent model and maze. On walks that never backtrack, or that keep their heading 80% of the time, the predicted legal
+set stays correct (99.8% with a known start; 98.7–98.8% after localisation from an unknown start): the model learned the maze, not the walk
+statistics. Depth helps localisation far more than dead reckoning: unknown-start KL falls 0.21 → 0.044 → 0.015 → 0.006 → 0.0026 for 1, 2, 3,
+4 and 6 blocks, while one block already reaches 0.003 with a known start.</p>
+<p>In a <span class="k">slippery</span> variant, 15% of moves silently fail, so the posterior stays uncertain even with a known start. The model
+reaches 0.014 nats of the optimum. A linear probe recovers the posterior with KL 0.42 (time-only baseline 2.63; slip-unaware dead reckoning
+7.5), and its entropy follows the true entropy step by step (r = 0.75). The linear readout is more diffuse than the truth (+0.42 nats); an
+MLP readout reaches KL 0.32 and +0.17 nats, so most of the blur is the probe's.</p>
+
+<h2>8 · Limitations</h2>
+<p>All models share one architecture and small worlds, and the mechanistic analyses (Sections 5–6) were run on one maze. The matching step,
+where MLPs in blocks 3–4 compare the egocentric sketch with the stored maze, has not been traced to individual neurons. Steering uses
+class-mean distances, computed with ground-truth labels, to set the edit size. Uniform random walks are friendly data, and the clean picture
+here may not survive partial observability or real trajectories [4].</p>
+
+<h2>References</h2>
+<ol class="refs">
+<li>K. Li et al. Emergent world representations: exploring a sequence model trained on a synthetic task. ICLR 2023.</li>
+<li>N. Nanda, A. Lee, M. Wattenberg. Emergent linear representations in world models of self-supervised sequence models. 2023.</li>
+<li>A. Shai et al. Transformers represent belief state geometry in their residual stream. NeurIPS 2024.</li>
+<li>K. Vafa et al. Evaluating the world model implicit in a generative model. NeurIPS 2024.</li>
+<li>A. Banino et al. Vector-based navigation using grid-like representations in artificial agents. Nature 2018.</li>
+<li>C. Cueva, X.-X. Wei. Emergence of grid-like representations by training recurrent neural networks to perform spatial localization. ICLR 2018.</li>
+<li>J. Whittington, J. Warren, T. Behrens. Relating transformers to models and neural representations of the hippocampal formation. ICLR 2022.</li>
+<li>W. Merrill, J. Petty, A. Sabharwal. The illusion of state in state-space models. ICML 2024.</li>
+<li>W. J. Ma, J. Beck, P. Latham, A. Pouget. Bayesian inference with probabilistic population codes. Nature Neuroscience 2006.</li>
+</ol>
+</body>
+</html>
