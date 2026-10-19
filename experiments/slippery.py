@@ -91,13 +91,16 @@ def main():
     H_probe = belief_entropy(logq.exp().double()).reshape(-1, S)
     res["best_layer"] = k
     res["entropy_by_t"] = {"true": H_true.mean(0).tolist(), "probe": H_probe.mean(0).tolist()}
+    res["entropy_excess_mean"] = float((H_probe - H_true).mean())
     res["entropy_corr"] = float(np.corrcoef(H_true.flatten().numpy(), H_probe.flatten().numpy())[0, 1])
     # model's next-move prediction vs optimal (from train log)
     with open(os.path.join(args.run, "train_log.json")) as f:
         last = json.load(f)[-1]
     res["kl_to_optimal"] = {"known": last["kl_known"], "unknown": last["kl_unknown"]}
     # an example walk for plotting: the posterior and the decoded belief over time
-    ex = int(np.argmax(H_true[:, 20:40].mean(1).numpy()))
+    # a representative walk: median uncertainty over moves 20-40
+    h = H_true[:, 20:40].mean(1).numpy()
+    ex = int(np.argsort(h)[len(h) // 2])
     res["example"] = {"tokens": te_tok[ex].tolist(), "cells": te_cells[ex].tolist(),
                       "true": te_P[ex].tolist(), "probe": logq.exp().reshape(-1, S, maze.N)[ex].tolist()}
     res["maze"] = maze.to_dict()

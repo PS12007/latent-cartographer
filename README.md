@@ -147,6 +147,12 @@ Every qualitative finding replicates: near-optimal behaviour, a linearly decodab
 
 What the model learned is the maze, not the statistics of the walks. That is expected if localisation works by checking a sketch of walked passages against a stored map: which cells fit depends only on the walls, not on how the walker chose its moves.
 
+**A slippery maze** ([`experiments/slippery.py`](experiments/slippery.py)). In a variant where 15% of moves silently fail (the token is emitted but the walker stays put), even a known start leaves the position uncertain. Slips spread the posterior out, and wall evidence ("that move would have been impossible from there") pulls it back in. The exact filter still applies (checked by enumerating every slip pattern in the tests). A model trained on this world gets within 0.014 nats of optimal, and its activations carry a graded belief:
+
+![Slippery maze](figures/slippery.png)
+
+A linear probe after block 4 reaches KL 0.42 to the exact posterior, against 2.63 for the best time-only guess and 7.5 for slip-unaware dead reckoning. Its uncertainty rises and falls with the true posterior's (per-step entropy correlation 0.75). The decoded belief is consistently **more diffuse** than the truth (+0.42 nats on average). Because the model's own predictions are near-optimal, this is probably the linear probe's limit in representing sharp multi-modal beliefs rather than the model's, but a nonlinear readout would be needed to settle it.
+
 ## Reproduce
 
 The quickest route is the [walkthrough notebook](notebooks/walkthrough.ipynb): about 15 s on a CPU, it reproduces the Bayes match, the belief probe, steering and map extraction.
@@ -163,6 +169,7 @@ python experiments/head_ablation.py        # per-head mean ablations
 python experiments/geometry.py             # shape of the internal map
 python experiments/policy_shift.py         # walking styles never seen in training
 python experiments/place_cells.py          # place cells / belief neurons
+python -m cartographer.train --out runs/slip15 --slip 0.15 --p_known 0.5 && python experiments/slippery.py
 bash   experiments/sweep_mazes.sh          # 3 more mazes (+ README table: python experiments/summarize.py)
 python experiments/dynamics.py             # probes on training snapshots
 bash   experiments/sweep_depth.sh          # depth sweep

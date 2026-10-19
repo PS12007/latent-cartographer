@@ -462,8 +462,42 @@ def fig_place():
     plt.close(fig)
 
 
+def fig_slippery():
+    R = load("results/slippery.json")
+    maze = Maze.from_dict(R["maze"])
+    ex = R["example"]
+    ts = [0, 8, 16, 24, 40, 64]
+    fig = plt.figure(figsize=(14, 5.2))
+    gs = fig.add_gridspec(2, len(ts) + 2, width_ratios=[1] * len(ts) + [0.1, 2.4])
+    for j, t in enumerate(ts):
+        for i, (key, col) in enumerate((("true", REF), ("probe", MODEL))):
+            ax = fig.add_subplot(gs[i, j])
+            draw_maze(ax, maze, np.array(ex[key][t]), col, lw=0.9)
+            r, c = divmod(ex["cells"][t], maze.W)
+            ax.plot(c + 0.5, r + 0.5, marker="o", ms=4, mfc="none", mec=INK, mew=1.1)
+            if i == 0:
+                ax.set_title(f"move {t}", fontsize=9.5, loc="center", color=SOFT)
+    fig.text(0.008, 0.70, "exact\nposterior", color=REF, fontsize=10, va="center")
+    fig.text(0.008, 0.30, "decoded\nfrom model", color=MODEL, fontsize=10, va="center")
+    ax = fig.add_subplot(gs[:, -1])
+    t = np.arange(len(R["entropy_by_t"]["true"]))
+    ax.plot(t, R["entropy_by_t"]["true"], color=REF)
+    ax.plot(t, R["entropy_by_t"]["probe"], color=MODEL)
+    ax.text(t[-1] + 1, R["entropy_by_t"]["true"][-1], "exact", color=REF, va="center", fontsize=9.5)
+    ax.text(t[-1] + 1, R["entropy_by_t"]["probe"][-1], "model", color=MODEL, va="center", fontsize=9.5)
+    ax.set_xlim(0, t[-1] + 12)
+    ax.set_xlabel("moves since the (known) start")
+    ax.set_ylabel("uncertainty: entropy of belief (nats)")
+    ax.set_title(f"Mean uncertainty (per-step r = {R['entropy_corr']:.2f})", fontsize=10.5)
+    fig.suptitle(f"Slippery maze ({R['slip']:.0%} of moves silently fail). Start is given, yet the model keeps a spreading, "
+                 "reshaping belief (example: a walk of median difficulty)", x=0.01, ha="left", fontsize=12)
+    fig.tight_layout(rect=(0.04, 0, 1, 0.93))
+    fig.savefig(f"{FIG}/slippery.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())
