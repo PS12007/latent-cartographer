@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 360" role="img" aria-label="How the model localises: block 1 integrates moves into a displacement, blocks 2-3 build an egocentric sketch of walked passages, block 4 matches the sketch against a maze stored in the weights to produce a belief over cells, which gives the next-move prediction. Recomputed from the history at every token." font-family="Georgia, 'Times New Roman', serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f1b16"/>
+    </marker>
+    <marker id="ahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2f62a8"/>
+    </marker>
+  </defs>
+  <rect width="1120" height="360" fill="#f5efe1"/>
+
+  <!-- column headers -->
+  <g font-family="'DejaVu Sans Mono', Consolas, monospace" font-size="11" fill="#c2381f" letter-spacing="1.5">
+    <text x="80" y="34" text-anchor="middle">INPUT</text>
+    <text x="290" y="34" text-anchor="middle">BLOCK 1</text>
+    <text x="530" y="34" text-anchor="middle">BLOCKS 2–3</text>
+    <text x="770" y="34" text-anchor="middle">BLOCK 4</text>
+    <text x="990" y="34" text-anchor="middle">OUTPUT</text>
+  </g>
+
+  <!-- input tokens -->
+  <g font-family="'DejaVu Sans Mono', Consolas, monospace" font-size="15" fill="#1f1b16" text-anchor="middle">
+    <rect x="22" y="70" width="116" height="120" fill="#fffaf0" stroke="#1f1b16"/>
+    <text x="80" y="98">?  N  E</text>
+    <text x="80" y="124">E  S  E</text>
+    <text x="80" y="150">N  N  W</text>
+    <text x="80" y="176" fill="#c2381f">S</text>
+  </g>
+  <text x="80" y="212" text-anchor="middle" font-size="13" fill="#5d5446">moves only</text>
+
+  <!-- block 1: dead reckoning -->
+  <rect x="210" y="70" width="160" height="120" fill="#fffaf0" stroke="#1f1b16"/>
+  <text x="290" y="96" text-anchor="middle" font-size="15" fill="#1f1b16">dead reckoning</text>
+  <!-- displacement vector -->
+  <circle cx="262" cy="146" r="4" fill="#1f1b16"/>
+  <line x1="262" y1="146" x2="318" y2="120" stroke="#2f62a8" stroke-width="2.5" marker-end="url(#ahs)"/>
+  <text x="290" y="178" text-anchor="middle" font-size="13" fill="#2f62a8">(Δrow, Δcol)</text>
+  <text x="290" y="212" text-anchor="middle" font-size="13" fill="#5d5446">probe R² 0.97</text>
+
+  <!-- block 2-3: egocentric sketch -->
+  <rect x="430" y="70" width="200" height="120" fill="#fffaf0" stroke="#1f1b16"/>
+  <text x="530" y="96" text-anchor="middle" font-size="15" fill="#1f1b16">egocentric sketch</text>
+  <g stroke="#d8ccb0" stroke-width="1">
+    <path d="M470 108 h120 M470 128 h120 M470 148 h120 M470 168 h120 M470 188 h120"/>
+    <path d="M470 108 v80 M490 108 v80 M510 108 v80 M530 108 v80 M550 108 v80 M570 108 v80 M590 108 v80"/>
+  </g>
+  <polyline points="500,118 520,118 520,138 540,138 560,138 560,158 540,158 540,178" fill="none" stroke="#b8860b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="540" cy="178" r="7" fill="none" stroke="#1f1b16" stroke-width="2"/>
+  <text x="530" y="212" text-anchor="middle" font-size="13" fill="#5d5446">walked passages, relative to me</text>
+
+  <!-- block 4: match -->
+  <rect x="690" y="70" width="160" height="120" fill="#fffaf0" stroke="#1f1b16"/>
+  <text x="770" y="96" text-anchor="middle" font-size="15" fill="#1f1b16">match</text>
+  <text x="770" y="128" text-anchor="middle" font-size="13" fill="#5d5446">where in the maze</text>
+  <text x="770" y="146" text-anchor="middle" font-size="13" fill="#5d5446">does this sketch fit?</text>
+  <text x="770" y="174" text-anchor="middle" font-size="13" fill="#5d5446">98.7% cell acc.</text>
+
+  <!-- stored maze (weights) -->
+  <rect x="705" y="250" width="130" height="58" fill="#efe6d2" stroke="#1f1b16" stroke-dasharray="4 3"/>
+  <g stroke="#1f1b16" stroke-width="1.6" fill="none">
+    <rect x="716" y="258" width="42" height="42"/>
+    <path d="M726 258 v14 M716 279 h20 M747 268 v22 M737 290 h10"/>
+  </g>
+  <text x="766" y="276" font-size="12.5" fill="#1f1b16">maze in</text>
+  <text x="766" y="292" font-size="12.5" fill="#1f1b16">the weights</text>
+  <line x1="770" y1="248" x2="770" y2="194" stroke="#1f1b16" stroke-width="1.5" marker-end="url(#ah)"/>
+
+  <!-- output: belief grid -->
+  <rect x="920" y="70" width="140" height="120" fill="#fffaf0" stroke="#1f1b16"/>
+  <g>
+    <rect x="950" y="82" width="80" height="80" fill="#fffaf0" stroke="#1f1b16"/>
+    <rect x="970" y="102" width="20" height="20" fill="#c2381f"/>
+    <rect x="1010" y="142" width="20" height="20" fill="#c2381f" opacity="0.35"/>
+    <rect x="950" y="142" width="20" height="20" fill="#c2381f" opacity="0.15"/>
+  </g>
+  <text x="990" y="182" text-anchor="middle" font-size="13" fill="#1f1b16">belief over 64 cells</text>
+  <text x="990" y="212" text-anchor="middle" font-size="13" fill="#5d5446">→ P(next move)</text>
+
+  <!-- main flow arrows -->
+  <g stroke="#1f1b16" stroke-width="1.5" fill="none" marker-end="url(#ah)">
+    <line x1="140" y1="130" x2="206" y2="130"/>
+    <line x1="372" y1="130" x2="426" y2="130"/>
+    <line x1="632" y1="130" x2="686" y2="130"/>
+    <line x1="852" y1="130" x2="916" y2="130"/>
+  </g>
+  <g font-size="11.5" fill="#5d5446" text-anchor="middle" font-style="italic">
+    <text x="174" y="122">attend</text>
+    <text x="174" y="150">evenly</text>
+    <text x="400" y="122">offsets</text>
+    <text x="660" y="122">sketch</text>
+    <text x="884" y="122">cells</text>
+  </g>
+
+  <!-- recompute note -->
+  <text x="560" y="344" text-anchor="middle" font-size="12.5" fill="#c2381f" font-style="italic">↻ rebuilt from the full move history at every token; no location state is carried forward</text>
+</svg>

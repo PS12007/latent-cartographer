@@ -6,6 +6,10 @@
 
 ![Belief over a walk: exact Bayes vs decoded from the model](figures/beliefs.png)
 
+**How it localises**, as established below with probes and causal edits:
+
+![Pipeline: dead reckoning, egocentric sketch, match against the maze in the weights](figures/pipeline.svg)
+
 ---
 
 ## The setup
