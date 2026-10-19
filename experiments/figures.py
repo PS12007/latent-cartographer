@@ -497,8 +497,94 @@ def fig_slippery():
     plt.close(fig)
 
 
+def _draw_ego_passages(ax, vals, R_, vmax):
+    """Draw a (2R+1)^2 x 2 array of passage values as segments: + vermilion, - blue."""
+    K_ = 2 * R_ + 1
+    v = np.asarray(vals).reshape(K_, K_, 2)
+    for i in range(K_ + 1):
+        ax.plot([0, K_], [i, i], color="#e6dccb", lw=0.6)
+        ax.plot([i, i], [0, K_], color="#e6dccb", lw=0.6)
+    for i in range(K_):
+        for j in range(K_):
+            for d in range(2):
+                x = v[i, j, d]
+                if np.isnan(x) or abs(x) < 1e-9:
+                    continue
+                col = MODEL if x > 0 else REF
+                a = min(1.0, abs(x) / vmax)
+                x0, y0 = j + 0.5, i + 0.5
+                x1, y1 = (x0 + 1, y0) if d == 0 else (x0, y0 + 1)
+                ax.plot([x0, x1], [y0, y1], color=col, lw=0.8 + 2.6 * a, alpha=0.2 + 0.8 * a, solid_capstyle="round")
+    ax.add_patch(plt.Circle((R_ + 0.5, R_ + 0.5), 0.28, fill=False, ec=INK, lw=1.4))
+    ax.set_xlim(0, K_); ax.set_ylim(K_, 0); ax.set_aspect("equal"); ax.axis("off")
+
+
+def fig_template():
+    T = load("results/template_matching.json")
+    R_ = 3
+    K_ = 2 * R_ + 1
+    keep = np.array(T["keep"])
+    maze = Maze.from_dict(T["maze"])
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from template_matching import template
+    rows = sorted(T["rows"], key=lambda r: -np.nan_to_num(np.corrcoef(
+        np.array(r["causal_beta"])[~np.isnan(template(maze, r["pref"])[keep])],
+        template(maze, r["pref"])[keep][~np.isnan(template(maze, r["pref"])[keep])])[0, 1]))
+    picked, seen = [], set()
+    for r in rows:                      # best-matching neurons, one per preferred cell
+        if r["pref"] not in seen:
+            picked.append(r); seen.add(r["pref"])
+        if len(picked) == 3:
+            break
+    rows = picked
+    fig = plt.figure(figsize=(13, 4.9))
+    gs = fig.add_gridspec(2, 5, width_ratios=[1, 1, 1, 0.1, 1.9], height_ratios=[1, 1])
+    for j, r in enumerate(rows):
+        full_t = template(maze, r["pref"])
+        full_b = np.full(K_ * K_ * 2, np.nan)
+        cb = np.array(r["causal_beta"])
+        full_b[keep] = cb - cb.mean()        # shown relative to the neuron's average response to any edit
+        ax = fig.add_subplot(gs[0, j]); _draw_ego_passages(ax, full_t, R_, 1.0)
+        ax.set_title(f"cell ({r['pref'] // maze.W},{r['pref'] % maze.W}): true layout", fontsize=9.5, loc="center", color=SOFT)
+        ax = fig.add_subplot(gs[1, j]); _draw_ego_passages(ax, full_b, R_, np.nanmax(np.abs(full_b)))
+        ax.set_title(f"neuron {r['neuron']}: causal field", fontsize=9.5, loc="center", color=SOFT)
+    ax = fig.add_subplot(gs[:, 4])
+    ranks = []
+    for r in T["rows"]:
+        t = template(maze, r["pref"])[keep]
+        m = ~np.isnan(t)
+        sc_all = []
+        for c in range(maze.N):
+            tc = template(maze, c)[keep]
+            mm = ~np.isnan(tc)
+            sc_all.append(np.corrcoef(np.array(r["causal_beta"])[mm], tc[mm])[0, 1] if mm.sum() > 5 else -9)
+        sc_all = np.nan_to_num(np.array(sc_all), nan=-9)
+        ranks.append(int((sc_all > sc_all[r["pref"]]).sum()) + 1)
+    ranks = np.array(ranks)
+    bins = [1, 2, 3, 6, 11, 65]
+    lab = ["1st", "2nd", "3rd–5th", "6th–10th", "11th–64th"]
+    counts = [((ranks >= bins[i]) & (ranks < bins[i + 1])).sum() / len(ranks) for i in range(5)]
+    chance = [(bins[i + 1] - bins[i]) / 64 for i in range(5)]
+    x = np.arange(5)
+    ax.bar(x, counts, color=MODEL, width=0.6)
+    ax.plot(x, chance, color=CTRL, marker="_", ms=26, lw=0, mew=2)
+    ax.text(4, chance[4] + 0.03, "chance", color=SOFT, ha="center", fontsize=9)
+    ax.set_xticks(x, lab, fontsize=9)
+    ax.set_ylabel("fraction of place neurons")
+    ax.set_title("Where the neuron's own cell ranks among all 64 templates", fontsize=10.5)
+    fig.text(0.01, 0.015, "Top: red = passage open around the cell, blue = wall. Bottom: red/blue = edit raises/lowers the neuron more than average. Ring = the walker.\n"
+             "Causal field: write one walked passage into the residual stream after block 3, measure the change in the neuron.",
+             color=SOFT, fontsize=9)
+    fig.suptitle(f"Place cells match a template: editing a remembered passage excites a place neuron if that passage exists around its cell "
+                 f"and inhibits it if it would cross a wall (causal r = {T['causal']['own_mean']:.2f}; other cells {T['causal']['others_mean']:.2f})",
+                 x=0.01, ha="left", fontsize=10.5)
+    fig.tight_layout(rect=(0, 0.06, 1, 0.94))
+    fig.savefig(f"{FIG}/template.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())

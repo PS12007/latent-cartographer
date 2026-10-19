@@ -179,7 +179,9 @@
     <div><h3>5 · It grows place cells that encode probability</h3>
       <p>127 of 512 neurons in the last MLP fire for a single location, like hippocampal place cells. While the model is
         unsure, their activity follows the <em>probability</em> of their cell, not whether it is the most likely one
-        (98% of neurons): a graded, Bayesian code over places.</p></div>
+        (98% of neurons): a graded, Bayesian code over places. They localise by
+        <b>template matching</b>: writing a remembered passage into the model excites a place neuron when that passage exists around its cell
+        and inhibits it when it would cross a wall there; the neuron's own cell is the best of 64 templates for 58% of them.</p></div>
     <img src="figs/place_cells.png" alt="Place cells">
   </div>
   <div class="find">

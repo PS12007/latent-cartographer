@@ -111,6 +111,12 @@ Average the model's activations over every moment it is sure it is in cell *c*, 
 
 The interesting part is what they do when the model is unsure. On moments with several candidate cells, a place neuron's activity follows the *posterior probability* of its cell (mean r = 0.45) better than whether its cell is the single most likely one (r = 0.33) or whether the walker is really there (r = 0.24). That holds for 98% of them. The network does not commit to a best guess and then encode it; it keeps a graded, probability-weighted code over places. This is the "probabilistic population code" proposed for Bayesian inference in the brain.
 
+**Place cells localise by template matching** ([`experiments/template_matching.py`](experiments/template_matching.py)). If a place neuron for cell *c* does the matching, remembered passages that exist around *c* should excite it, and passages that would cross a wall there should inhibit it. Regressing each of 64 strong place neurons on the 98 egocentric passage features gives receptive fields that correlate with the wall layout around the neuron's own cell (r = 0.79, other cells -0.01). The own cell is the best match of all 64 for 92% of neurons. That alone could be a side effect of firing at *c*, so the causal version writes each passage feature into the residual stream after block 3 and measures how much each neuron changes. The causal fields still pick out the neuron's own cell: r = 0.30 vs -0.02, best of 64 for 58% of neurons (55–61% across probe seeds; chance 1.6%).
+
+![Template matching](figures/template.png)
+
+The causal effect is weaker than the correlational one, so template matching in block 4 is part of the story, not all of it. (Counting off-grid passages as walls in the templates, tried afterwards, matches less well: best of 64 for 31%.)
+
 ## 5. Depth and training dynamics
 
 ![Depth sweep](figures/depth.png)
@@ -169,6 +175,7 @@ python experiments/head_ablation.py        # per-head mean ablations
 python experiments/geometry.py             # shape of the internal map
 python experiments/policy_shift.py         # walking styles never seen in training
 python experiments/place_cells.py          # place cells / belief neurons
+python experiments/template_matching.py    # do place cells template-match the local sketch?
 python -m cartographer.train --out runs/slip15 --slip 0.15 --p_known 0.5 && python experiments/slippery.py
 bash   experiments/sweep_mazes.sh          # 3 more mazes (+ README table: python experiments/summarize.py)
 python experiments/dynamics.py             # probes on training snapshots
@@ -188,7 +195,7 @@ docs/           the browser demo (GitHub Pages): model.js is a line-for-line JS 
 ## Limitations and next steps
 
 * **One architecture, small worlds.** Results replicate across 4 mazes and a 12×12 maze, but always with a 4-block, d=128 model. Depth, training dynamics and the mechanistic analyses (sections 3–5) were run on the main maze only.
-* **The circuit is only partly reverse-engineered.** The stages (dead reckoning → egocentric map → matching) are established with probes and edits on the residual stream, and head ablations name the integrator and the localisation heads. But the matching step itself, where MLPs in blocks 3–4 compare the local sketch with the stored maze, has not been traced to neurons. That is the obvious next target.
+* **The circuit is only partly reverse-engineered.** The stages are established with probes and edits on the residual stream, head ablations name the integrator and the localisation heads, and place neurons are causally shown to template-match the local sketch. But the causal template effect (r = 0.30) explains only part of their tuning, and the block-3 computation feeding them is untraced.
 * **Uniform random walks are friendly data.** [Vafa et al. 2024](https://arxiv.org/abs/2406.03689) show that transformers trained on real taxi routes predict well *without* forming a coherent map. Here the map survives biased walking policies (section 6), so the open question is what breaks it: partial observability, noisy moves, worlds too large for the model's capacity, or real trajectories.
 * **Steering uses class means computed with ground-truth labels** to set the edit size. The direction comes from the probe; the scale does not.
 
