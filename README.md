@@ -33,6 +33,7 @@ The model is never told the maze, the coordinates, or that walls exist. To predi
 | Steering the decoded belief to another cell | model's predicted legal moves become the new cell's **90%** of the time (random edit of same size: 3.5%) |
 | Maze recovered from the model by steering alone | **112 / 112 interior walls correct** |
 | Writing one remembered passage into the local map | belief shifts toward whichever candidate cell has that passage (+0.22 / −0.18 vs control) |
+| Replicates on 3 more mazes + a 12×12 maze | all walls recovered on every 8×8 maze; 261/264 on 12×12 |
 | Does a steered belief persist to the next step? | **No** (14% vs 14% unsteered): location is recomputed from the history at every token |
 
 ## 1. The model is (nearly) Bayes-optimal, and the belief is in the residual stream
@@ -113,6 +114,32 @@ With width and training budget fixed, one block already does dead reckoning from
 
 Across training, displacement becomes decodable almost at once. The maze-frame position emerges over thousands of steps afterwards, and the loss on unknown-start walks keeps improving long after known-start walks are nearly solved.
 
+## 6. Robustness
+
+**Other mazes, and a bigger one.** The whole pipeline was re-run from scratch (new maze *and* new initialisation) on three more 8×8 mazes, and on a 12×12 maze (144 cells, 96-move walks) with the *same* 0.8M-parameter model ([`experiments/sweep_mazes.sh`](experiments/sweep_mazes.sh), table from [`experiments/summarize.py`](experiments/summarize.py)):
+
+| maze | KL to optimal (given / unknown start) | best probe cell acc. | steering after block 3 (random) | walls recovered | persistence (steered / not) |
+|---|---|---|---|---|---|
+| 8×8, seed 0 | 0.0001 / 0.0062 | 98.7% | 90% (4%) | 112/112 | 14% / 14% |
+| 8×8, seed 1 | 0.0001 / 0.0054 | 98.4% | 84% (3%) | 112/112 | 14% / 14% |
+| 8×8, seed 2 | 0.0001 / 0.0052 | 98.9% | 89% (3%) | 112/112 | 12% / 12% |
+| 8×8, seed 3 | 0.0001 / 0.0058 | 98.1% | 82% (4%) | 112/112 | 14% / 14% |
+| 12×12, seed 0 | 0.0002 / 0.0131 | 96.4% | 80% (4%) | 261/264 | 12% / 12% |
+
+Every qualitative finding replicates: near-optimal behaviour, a linearly decodable and steerable map, perfect or near-perfect map extraction, and no persistence. On the 12×12 maze the three misses are all walls the model believes are open:
+
+<p align="center"><img src="figures/map_big12.png" width="720" alt="12x12 maze extracted from the model"></p>
+
+**Walking styles never seen in training** ([`experiments/policy_shift.py`](experiments/policy_shift.py)). The model was trained only on uniform random walks. On walks that never backtrack, or that keep going straight 80% of the time, its predicted set of legal moves is still right:
+
+| walk policy | start given: legal-set acc. | start unknown, once only one cell fits: legal-set acc. | …probe finds the cell |
+|---|---|---|---|
+| uniform | 99.7% | 98.8% | 93.7% |
+| no-backtrack | 99.8% | 98.8% | 93.8% |
+| momentum | 99.8% | 98.7% | 93.3% |
+
+What the model learned is the maze, not the statistics of the walks. That is expected if localisation works by checking a sketch of walked passages against a stored map: which cells fit depends only on the walls, not on how the walker chose its moves.
+
 ## Reproduce
 
 The quickest route is the [walkthrough notebook](notebooks/walkthrough.ipynb): about 15 s on a CPU, it reproduces the Bayes match, the belief probe, steering and map extraction.
@@ -125,6 +152,11 @@ python experiments/probes.py               # Fig. probes      -> results/probes.
 python experiments/intervene.py            # steering + map   -> results/intervene.json
 python experiments/mechanism.py            # exclusion masks, attention stats
 python experiments/egocentric.py           # egocentric map probes
+python experiments/egocentric_causal.py    # editing one remembered passage
+python experiments/head_ablation.py        # per-head mean ablations
+python experiments/geometry.py             # shape of the internal map
+python experiments/policy_shift.py         # walking styles never seen in training
+bash   experiments/sweep_mazes.sh          # 3 more mazes (+ README table: python experiments/summarize.py)
 python experiments/dynamics.py             # probes on training snapshots
 bash   experiments/sweep_depth.sh          # depth sweep
 python experiments/figures.py              # all figures
@@ -141,7 +173,7 @@ docs/           the browser demo (GitHub Pages): model.js is a line-for-line JS 
 
 ## Limitations and next steps
 
-* **One maze.** All results are for a single 8×8 maze (seed 0). Map extraction should be repeated across maze seeds and sizes, and the depth sweep across seeds.
+* **One architecture, small worlds.** Results replicate across 4 mazes and a 12×12 maze, but always with a 4-block, d=128 model. Depth, training dynamics and the mechanistic analyses (sections 3–5) were run on the main maze only.
 * **The circuit is not fully reverse-engineered.** The stages (dead reckoning → egocentric map → matching) are established with probes and edits on the residual stream, not traced to individual heads and neurons. The matching step, where a local map meets the stored maze, is the obvious next target.
 * **Uniform random walks are friendly data.** [Vafa et al. 2024](https://arxiv.org/abs/2406.03689) show that transformers trained on real taxi routes predict well *without* forming a coherent map. The interesting question is when the clean structure seen here breaks down: biased policies, partial observability, larger worlds.
 * **Steering uses class means computed with ground-truth labels** to set the edit size. The direction comes from the probe; the scale does not.

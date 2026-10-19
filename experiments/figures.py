@@ -397,8 +397,38 @@ def fig_geometry():
     plt.close(fig)
 
 
+def fig_map_big():
+    R = load("results/intervene_big12.json")
+    maze = Maze.from_dict(R["maze"])
+    rec = np.array(R["map"]["recon"])
+    nxt = maze.nxt()
+    op = np.zeros_like(maze.open)
+    wrong = []
+    for c in range(maze.N):
+        r, q = divmod(c, maze.W)
+        for d, (dr, dq) in enumerate([(-1, 0), (0, 1), (1, 0), (0, -1)]):
+            rr, qq = r + dr, q + dq
+            if 0 <= rr < maze.H and 0 <= qq < maze.W:
+                nb = rr * maze.W + qq
+                op[c, d] = 0.5 * (rec[c, d] + rec[nb, (d + 2) % 4]) > 0.1
+                if d in (1, 2) and op[c, d] != maze.open[c, d]:
+                    wrong.append((r, q, d))
+    fig, axs = plt.subplots(1, 2, figsize=(9.6, 5.1))
+    draw_maze(axs[0], maze, lw=1.3)
+    draw_maze(axs[1], maze, open_=op, lw=1.3)
+    for r, q, d in wrong:  # circle each mistake
+        x, y = (q + 1, r + 0.5) if d == 1 else (q + 0.5, r + 1)
+        axs[1].add_patch(plt.Circle((x, y), 0.45, fill=False, ec=MODEL, lw=2))
+    axs[0].set_title("ground truth (12×12)", loc="center", color=SOFT)
+    axs[1].set_title(f"read out of the model: {R['map']['interior_correct']}/{R['map']['interior_total']} walls correct (misses circled)",
+                     loc="center", color=MODEL, fontsize=10.5)
+    fig.tight_layout()
+    fig.savefig(f"{FIG}/map_big12.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())
