@@ -198,7 +198,14 @@
     <img class="narrow" src="figs/heads.png" alt="Head ablations">
   </div>
   <div class="find">
-    <div><h3>7 · It replicates</h3>
+    <div><h3>7 · Four mazes, one network: remapping</h3>
+      <p>Trained on four mazes with a maze-ID token, the same neurons serve as place cells in several mazes but with unrelated
+        fields (correlation 0.13), like hippocampal remapping between rooms. Swapping only the maze token makes the model
+        expect the new maze's walls 85%–89% of the time: one shared position code, checked against whichever map the context selects.</p></div>
+    <img src="figs/multimaze.png" alt="Four mazes in one network">
+  </div>
+  <div class="find">
+    <div><h3>8 · It replicates</h3>
       <p>Retrained from scratch on three more 8×8 mazes: every wall recovered each time, steering works 82–90%, and edits never
         persist. On a 12×12 maze with the same small model, 261 of 264 walls come back. The map also survives walking styles
         never seen in training (98.7% legal-move accuracy when lost).</p></div>

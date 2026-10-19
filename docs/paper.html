@@ -54,7 +54,8 @@ editing a single remembered passage shifts the belief between candidate cells in
 Location is recomputed from the move history at every token rather than carried forward. Early layers lay the cells out as a
 flat sheet in grid coordinates; the last MLP contains place cells whose activity tracks the posterior probability of their cell.
 Results replicate on three further mazes and a 12×12 maze, survive walking policies never seen in training, and extend to a
-"slippery" world where the belief must stay graded even when the start is known.</div>
+"slippery" world where the belief must stay graded even when the start is known. Trained on four mazes at once, the model's place neurons
+remap between mazes, and a maze token selects which stored map is read.</div>
 
 <h2>1 · Introduction</h2>
 <p>Whether sequence models trained on next-token prediction build internal models of the process that generated their data is a
@@ -166,7 +167,17 @@ reaches 0.014 nats of the optimum. A linear probe recovers the posterior with KL
 7.5), and its entropy follows the true entropy step by step (r = 0.75). The linear readout is more diffuse than the truth (+0.42 nats); an
 MLP readout reaches KL 0.32 and +0.17 nats, so most of the blur is the probe's.</p>
 
-<h2>8 · Limitations</h2>
+<h2>8 · Four mazes in one network</h2>
+<p>A model of the same size trained on four mazes, with a maze token at the start of each sequence, learns all four maps (KL
+0.0002–0.0002 known start, 0.015–0.025 unknown). About 220 of 512 last-layer neurons have compact
+place fields in each maze. Neurons with fields in two mazes show nearly unrelated fields (mean correlation 0.13, against 1.00 for
+split halves within a maze; same preferred cell 5%–24%, chance 1.6%), resembling global remapping of hippocampal place cells
+between environments. With a known start the position is maze-independent. Swapping only the maze token makes predictions follow the new
+maze's walls 85%–89% of the time (old maze 3–4%): a shared position code is read against whichever map the context selects.</p>
+<figure><img src="figs/multimaze.png" alt=""><figcaption><b>Figure 9.</b> Left: two last-layer neurons' fields in four mazes. Middle: field
+correlation within vs across mazes. Right: after swapping the maze token, predictions follow the new maze's walls.</figcaption></figure>
+
+<h2>9 · Limitations</h2>
 <p>All models share one architecture and small worlds, and the mechanistic analyses (Sections 5–6) were run on one maze. The matching step,
 where MLPs in blocks 3–4 compare the egocentric sketch with the stored maze, is only partly explained by the causal template effect, and the block-3 computation feeding the place neurons is untraced. Steering uses
 class-mean distances, computed with ground-truth labels, to set the edit size. Uniform random walks are friendly data, and the clean picture

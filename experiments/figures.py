@@ -583,8 +583,55 @@ def fig_template():
     plt.close(fig)
 
 
+def fig_multimaze():
+    R = load("results/multimaze.json")
+    mazes = [Maze.from_dict(m) for m in R["mazes"]]
+    ex = list(R["ratemaps_example"].items())[:2]
+    fig = plt.figure(figsize=(14, 5.0))
+    gs = fig.add_gridspec(2, 7, width_ratios=[1, 1, 1, 1, 0.15, 1.5, 1.5])
+    for i, (n, rms) in enumerate(ex):
+        for j in range(4):
+            ax = fig.add_subplot(gs[i, j])
+            rm = np.array(rms[j])
+            rm = (rm - rm.min()) / max(rm.max() - rm.min(), 1e-9)
+            draw_maze(ax, mazes[j], rm, MODEL, lw=0.9)
+            if i == 0:
+                ax.set_title(f"maze {j + 1}", fontsize=10, loc="center", color=SOFT)
+        fig.text(0.006, 0.70 - 0.42 * i, f"neuron\n{n}", fontsize=9, color=SOFT, va="center")
+    rm_ = R["remapping"]
+    ax = fig.add_subplot(gs[:, 5])
+    pairs = rm_["pairs"]
+    vals = [np.mean([p["field_corr_mean"] for p in pairs]), rm_["within_maze_split_half_corr"]]
+    ax.bar([0, 1], [rm_["within_maze_split_half_corr"], vals[0]], color=[REF, MODEL], width=0.55)
+    for x, v in zip([0, 1], [rm_["within_maze_split_half_corr"], vals[0]]):
+        ax.text(x, v + 0.02, f"{v:.2f}", ha="center", fontsize=10)
+    ax.set_xticks([0, 1], ["same maze\n(split halves)", "different\nmazes"])
+    ax.set_ylim(0, 1.1)
+    ax.set_ylabel("place-field correlation")
+    ax.set_title("Global remapping", fontsize=11)
+    ax = fig.add_subplot(gs[:, 6])
+    ts = sorted({s["t"] for s in R["swap"]})
+    new = [np.mean([s["follows_new"] for s in R["swap"] if s["t"] == t]) for t in ts]
+    old = [np.mean([s["follows_old"] for s in R["swap"] if s["t"] == t]) for t in ts]
+    x = np.arange(len(ts))
+    ax.bar(x - 0.18, new, width=0.34, color=MODEL)
+    ax.bar(x + 0.18, old, width=0.34, color=CTRL)
+    ax.text(x[0] - 0.18, new[0] + 0.02, "new maze", color=MODEL, ha="center", fontsize=9)
+    ax.text(x[0] + 0.18, old[0] + 0.02, "old", color=SOFT, ha="center", fontsize=9)
+    ax.set_xticks(x, [f"move {t}" for t in ts])
+    ax.set_ylim(0, 1.05)
+    ax.set_ylabel("predicted legal moves match…")
+    ax.set_title("Swap only the maze token", fontsize=11)
+    kl = R["kl"]
+    fig.suptitle("One network, four mazes: place neurons remap between mazes, and the maze token selects which map is read "
+                 f"(KL to optimal per maze ≤ {max(v['unknown'] for v in kl.values()):.3f} nats)", x=0.01, ha="left", fontsize=11.5)
+    fig.tight_layout(rect=(0.03, 0, 1, 0.93))
+    fig.savefig(f"{FIG}/multimaze.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal", "heads", "geometry", "map_big", "place", "slippery", "template", "multimaze"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())
