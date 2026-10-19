@@ -294,8 +294,33 @@ def fig_frames():
     plt.close(fig)
 
 
+# ------------------------------------------------------------------ Fig 7: egocentric map, causal
+def fig_egocausal():
+    R = load("results/egocentric_causal.json")
+    fig, ax = plt.subplots(figsize=(7.6, 4.3))
+    names = {"pro_B": ("passage exists only around B", MODEL), "pro_A": ("passage exists only around A", REF),
+             "neutral": ("passage exists around both", CTRL)}
+    for cond, (name, col) in names.items():
+        d = R["conditions"][cond]
+        al = [float(a) for a in d]
+        m = np.array([v["mean"] for v in d.values()])
+        e = np.array([v["sem"] for v in d.values()])
+        ax.plot(al, m, color=col, marker="o", ms=6, ls="--" if cond == "neutral" else "-")
+        ax.fill_between(al, m - 1.96 * e, m + 1.96 * e, color=col, alpha=0.15, lw=0)
+        ax.text(al[-1] + 0.4, m[-1], name, color=col if cond != "neutral" else SOFT, va="center", fontsize=9.5)
+    ax.axhline(0, color=SOFT, lw=0.8)
+    ax.set_xlim(-0.5, max(al) + 9)
+    ax.set_xticks([a_ for a_ in al])
+    ax.set_xlabel("edit size α (write “I walked this passage” into the residual after block 3)")
+    ax.set_ylabel("change in P(B) / (P(A)+P(B))")
+    ax.set_title(f"Two candidate cells, A and B. Editing one remembered passage moves the belief (n={R['n']})")
+    fig.tight_layout()
+    fig.savefig(f"{FIG}/egocausal.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames"]
+    which = sys.argv[1:] or ["beliefs", "probes", "steering", "depth", "dynamics", "frames", "egocausal"]
     for w in which:
         print(w, globals()[f"fig_{w}"]())

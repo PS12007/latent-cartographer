@@ -26,6 +26,7 @@ The model is never told the maze, the coordinates, or that walls exist. To predi
 | Linear readout of the full 64-way belief | KL **0.10** nats to the exact posterior, vs 1.64 from the model's own output distribution |
 | Steering the decoded belief to another cell | model's predicted legal moves become the new cell's **90%** of the time (random edit of same size: 3.5%) |
 | Maze recovered from the model by steering alone | **112 / 112 interior walls correct** |
+| Writing one remembered passage into the local map | belief shifts toward whichever candidate cell has that passage (+0.22 / −0.18 vs control) |
 | Does a steered belief persist to the next step? | **No** (14% vs 14% unsteered): location is recomputed from the history at every token |
 
 ## 1. The model is (nearly) Bayes-optimal, and the belief is in the residual stream
@@ -70,7 +71,13 @@ What it does represent is a **local map of the history, in its own coordinate fr
 
 The egocentric map peaks in **block 3** (visited cells 0.89, walked passages 0.84, vs ≈0.6 at random init) and then declines. At the same time the position in the maze's own frame climbs to 98.7% in block 4. The attention pattern agrees: block 1's heads spread attention almost evenly over the whole history (normalised entropy 0.93–1.0, the averaging needed for dead reckoning), while later heads are sharp and content-dependent.
 
-The emerging picture is a tiny, learned form of the SLAM that robots use: integrate your moves → build a local map of what you have seen *relative to yourself* → match it against a map stored *in the weights* → read off where you are. This part of the analysis is correlational (probes, not interventions), so treat it as the best-supported hypothesis rather than a proven circuit.
+**The local map is used, not just present** ([`experiments/egocentric_causal.py`](experiments/egocentric_causal.py)). Take moments where the exact posterior has exactly two candidate cells, A (true) and B. Both fit everything seen so far; they differ only in unexplored parts of the maze. Pick a passage, relative to the walker, that has *not* been walked, and write "I walked this passage" into the residual stream after block 3 along the local-map probe's direction:
+
+![Egocentric map, causal test](figures/egocausal.png)
+
+A passage that exists only around B pushes the belief toward B (+0.29 at α=8). One that exists only around A pushes it toward A (−0.11). A passage that exists around both does little (+0.07). Relative to that control the effects are +0.22 and −0.18, in opposite directions, as the matching story predicts. (The control drifts slightly toward B because the model, like the exact posterior, starts out favouring the true cell A on average, and any disruption pulls it back toward 50/50.)
+
+The emerging picture is a tiny, learned form of the SLAM that robots use: integrate your moves → build a local map of what you have walked, *relative to yourself* → match it against a map stored *in the weights* → read off where you are.
 
 ## 4. Depth and training dynamics
 
@@ -108,7 +115,7 @@ docs/           the browser demo (GitHub Pages): model.js is a line-for-line JS 
 ## Limitations and next steps
 
 * **One maze.** All results are for a single 8×8 maze (seed 0). Map extraction should be repeated across maze seeds and sizes, and the depth sweep across seeds.
-* **The egocentric-map story is correlational.** A causal test would edit the probed "walked passage at offset (dr, dc)" feature and check that the location belief shifts as matching predicts.
+* **The circuit is not fully reverse-engineered.** The stages (dead reckoning → egocentric map → matching) are established with probes and edits on the residual stream, not traced to individual heads and neurons. The matching step, where a local map meets the stored maze, is the obvious next target.
 * **Uniform random walks are friendly data.** [Vafa et al. 2024](https://arxiv.org/abs/2406.03689) show that transformers trained on real taxi routes predict well *without* forming a coherent map. The interesting question is when the clean structure seen here breaks down: biased policies, partial observability, larger worlds.
 * **Steering uses class means computed with ground-truth labels** to set the edit size. The direction comes from the probe; the scale does not.
 
